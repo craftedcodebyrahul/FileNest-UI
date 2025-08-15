@@ -1,0 +1,23 @@
+<mat-sidenav-container class="sidebar-container">
+  <mat-sidenav #sidenav mode="side" opened class="sidebar">
+    <mat-nav-list>
+      <!-- Home item -->
+      <mat-list-item (click)="onFolderClick('')">
+        <mat-icon matListItemIcon>home</mat-icon>
+        <span matListItemTitle>Home</span>
+      </mat-list-item>
+      
+      <!-- Folders section -->
+      <mat-divider></mat-divider>
+      <h3 matSubheader>Folders</h3>
+      
+      <mat-list-item 
+        *ngFor="let folder of folders" 
+        (click)="onFolderClick(folder)"
+      >
+        <mat-icon matListItemIcon class="folder-icon">folder</mat-icon>
+        <span matListItemTitle>{{folder}}</span>
+      </mat-list-item>
+    </mat-nav-list>
+  </mat-sidenav>
+</mat-sidenav-container>

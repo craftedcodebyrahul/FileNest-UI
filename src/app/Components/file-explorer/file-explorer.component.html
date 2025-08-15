@@ -1,0 +1,68 @@
+<div class="file-explorer">
+  <div class="navigation">
+    <div class="breadcrumb">
+      <a (click)="breadcrumb_paths = []; get_all_dir_files('')">Home</a>
+      <span *ngFor="let crumb of breadcrumb_paths; let i = index">
+        <span class="separator">›</span>
+        <a (click)="onBreadcrumbClick(i)">{{ crumb }}</a>
+      </span>
+    </div>
+
+    <div class="actions">
+      <button mat-raised-button color="primary" (click)="openCreateFolderDialog()">
+        <mat-icon>create_new_folder</mat-icon>
+        New Folder
+      </button>
+      <button mat-raised-button (click)="openUploadFilesDialog()">
+        <mat-icon>cloud_upload</mat-icon>
+        Upload Files
+      </button>
+    </div>
+  </div>
+
+  <div class="file-grid-container">
+    <div class="file-grid">
+      <!-- Folders -->
+      <div class="file-item"  *ngFor="let folder of current_directories" (dblclick)="OnClickDir(folder)" >
+        <mat-icon class="folder-icon">folder</mat-icon>
+        <div class="file-info">
+          <div class="name">{{folder}}</div>
+        </div>
+      </div>
+
+      <!-- Files -->
+      <div class="file-item" *ngFor="let file of current_files" (dblclick)="onFileClick(file)"  >
+        <mat-icon class="file-icon" [ngClass]="getFileIconClass(file)">
+          {{ getFileIcon(file) }}
+        </mat-icon>
+        <div class="file-info">
+          <div class="name">{{ file.name }}</div>
+          <div class="details">
+            {{ formatFileSize(file.size) }} • {{ file.updatedAt | date:"dd/MM/yy hh:mm a" }}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+</div>
+
+<mat-menu #contextMenu>
+  <button mat-menu-item>
+    <mat-icon>content_cut</mat-icon>
+    Cut
+  </button>
+  <button mat-menu-item>
+    <mat-icon>content_copy</mat-icon>
+    Copy
+  </button>
+  <button mat-menu-item>
+    <mat-icon>content_paste</mat-icon>
+    Paste
+  </button>
+  <button mat-menu-item>
+    <mat-icon>print</mat-icon>
+    Print
+  </button>
+</mat-menu>

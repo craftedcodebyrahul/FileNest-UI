@@ -1,0 +1,32 @@
+<mat-toolbar color="primary" class="header">
+  <span>File Nest</span>
+  <span class="example-spacer"></span>
+  <button mat-icon-button [matMenuTriggerFor]="userMenu" aria-label="User notificatons">
+    <mat-icon>notificatons</mat-icon>
+  </button>
+  <button mat-icon-button [matMenuTriggerFor]="userMenu" aria-label="User account menu">
+    <mat-icon>account_circle</mat-icon>
+  </button>
+  <mat-menu #userMenu="matMenu" panelClass="user-profile-menu" [hasBackdrop]="true">
+    <div class="user-info-container" (click)="$event.stopPropagation()">
+      <h3>{{ user?.first_name }} {{ user?.last_name }}</h3>
+
+      <div class="user-info-field">
+        <label>Email:</label>
+        <span>{{ user?.email }}</span>
+      </div>
+
+      <div class="user-info-field">
+        <label>Phone:</label>
+        <span>{{ user?.phone_number }}</span>
+      </div>
+    </div>
+
+    <mat-divider></mat-divider>
+
+    <button mat-menu-item (click)="logout()">
+      <mat-icon>logout</mat-icon>
+      <span>Logout</span>
+    </button>
+  </mat-menu>
+</mat-toolbar>

@@ -1,0 +1,8 @@
+ .main-content {
+      display: flex;
+      height:calc(100vh - 0px);;
+      overflow: hidden; 
+    }
+    .file-explorer-container {
+   width: 100%;
+    }

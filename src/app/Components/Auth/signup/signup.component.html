@@ -1,0 +1,19 @@
+<div class="container">
+  <div class="registration form">
+    <header>Signup</header>
+    <form [formGroup]="form">
+      <input type="text" formControlName="first_name" placeholder="Enter your first name" autocomplete="new-username" />
+      <input type="text" formControlName="last_name" placeholder="Enter your last name" autocomplete="new-username" />
+      <input type="text" formControlName="phone_number" placeholder="Enter your phone number" autocomplete="new-username" />
+      <input type="email" formControlName="email" placeholder="Enter your email" autocomplete="new-username" />
+      <input type="password" formControlName="password" placeholder="Create a password" autocomplete="new-password" />
+      <input type="password"  placeholder="Confirm your password" />
+      <input type="button" class="button" (click)="onSignup()" value="Signup" />
+    </form>
+    <div class="signup">
+      <span>Already have an account?
+        <a routerLink="/login">Login</a>
+      </span>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,15 @@
+ <div class="file-grid">
+      <mat-card class="file-card" *ngFor="let item of items">
+        <mat-icon class="file-icon" [ngClass]="{
+          'folder-icon': type === 'folder',
+          'document-icon': type === 'file' && item.type === 'document',
+          'image-icon': type === 'file' && item.type === 'image',
+          'video-icon': type === 'file' && item.type === 'video'
+        }">
+          {{ type === 'folder' ? 'folder' : getFileIcon(item.type) }}
+        </mat-icon>
+        <div class="file-name">{{ item.name }}</div>
+        <div *ngIf="type === 'folder'" class="file-details">{{ item.count }} items</div>
+        <div *ngIf="type === 'file'" class="file-details">{{ item.size }} • {{ item.date }}</div>
+      </mat-card>
+    </div>

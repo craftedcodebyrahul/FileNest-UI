@@ -1,0 +1,11 @@
+<div class="wrapper">
+  <header>File Uploader</header>
+  <form (click)="triggerFileInput($event)">
+    <input #fileInput class="file-input" type="file" hidden (change)="onFileChange($event)" />
+    <i class="fas fa-cloud-upload-alt"></i>
+    <p>Browse File to Upload</p>
+  </form>
+
+  <section class="progress-area" #progressArea></section>
+  <section class="uploaded-area" #uploadedArea></section>
+</div>

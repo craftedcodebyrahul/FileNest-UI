@@ -1,0 +1,16 @@
+<div class="container">
+  <div class="login form">
+    <header>Login</header>
+    <form [formGroup]="form">
+      <input type="text" formControlName="email" placeholder="Enter your email" />
+      <input type="password" formControlName="password" placeholder="Enter your password" />
+      <a href="#">Forgot password?</a>
+      <input type="button" (click)="onSubmit()" class="button" value="Login" />
+    </form>
+    <div class="signup">
+      <span>Don't have an account?
+        <a  [routerLink]="['/signup']">Signup</a>
+      </span>
+    </div>
+  </div>
+</div>

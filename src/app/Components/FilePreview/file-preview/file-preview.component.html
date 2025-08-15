@@ -1,0 +1,35 @@
+<!-- file-preview.component.html -->
+<div class="dialog-container">
+  <h2 mat-dialog-title>{{ data.name }}</h2>
+
+  <mat-dialog-content>
+    <!-- Image Preview -->
+    <img *ngIf="isImage" [src]="data.url" [alt]="data.name" class="preview-image">
+
+    <!-- PDF Preview -->
+    <iframe *ngIf="isPdf" [src]="data.url | safeUrl" class="preview-frame" title="PDF Preview"></iframe>
+
+    <!-- Office Docs Preview -->
+    <iframe *ngIf="isOfficeDoc" [src]="'https://view.officeapps.live.com/op/embed.aspx?src=' + data.url | safeUrl"
+      class="preview-frame" title="Document Preview"></iframe>
+
+    <!-- Unsupported Files -->
+    <div *ngIf="!isImage && !isPdf && !isOfficeDoc" class="unsupported">
+      <div class="unsupported-content">
+        <mat-icon class="file-icon">insert_drive_file</mat-icon>
+        <p class="message">Preview not available in this viewer</p>
+        <button mat-raised-button color="primary" class="browser-button" (click)="openInBrowser()">
+          <mat-icon class="button-icon">open_in_browser</mat-icon>
+          <span class="button-text">Open in Browser</span>
+        </button>
+      </div>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <a mat-button [href]="data.url" target="_blank" color="primary" *ngIf="isImage || isPdf || isOfficeDoc">
+      <mat-icon>download</mat-icon> Download
+    </a>
+    <button mat-button mat-dialog-close>Close</button>
+  </mat-dialog-actions>
+</div>
