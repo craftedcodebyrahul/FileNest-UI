@@ -28,7 +28,9 @@ export class SignupComponent {
   onSignup() {
     debugger;
     if (this.form.valid) {
-     this.authService.register(this.form.value);
+     this.authService.register(this.form.value).subscribe((x) => {
+     
+     });
     }
   }
 }
