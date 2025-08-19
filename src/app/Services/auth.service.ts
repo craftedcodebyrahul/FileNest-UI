@@ -16,21 +16,21 @@ interface AuthResponse {
 })
 export class AuthService {
   private baseUrl = environment.API_URL;
-private http= inject(HttpClient);
-private router= inject(Router);
-private snackBar= inject(MatSnackBar);
-  constructor(
- 
-  ) {}
+  private http = inject(HttpClient);
+  private router = inject(Router);
+  private snackBar = inject(MatSnackBar);
+  constructor() {}
 
   login(email: string, password: string): Observable<AuthResponse> {
     const url = `${this.baseUrl}${url_constants.auth.login}`;
     return this.http.post<AuthResponse>(url, { email, password }).pipe(
-      tap(response => {
+      tap((response) => {
         localStorage.setItem('token', response.access_token);
         this.router.navigate(['/dashboard']);
       }),
-      catchError(error => this.handleError(error, 'Login failed. Please try again.'))
+      catchError((error) =>
+        this.handleError(error, 'Login failed. Please try again.')
+      )
     );
   }
 
@@ -38,7 +38,7 @@ private snackBar= inject(MatSnackBar);
     const url = `${this.baseUrl}${url_constants.auth.register}`;
     return this.http.post(url, userForm).pipe(
       tap(() => this.router.navigate(['/login'])),
-      catchError(error => this.handleError(error, 'Registration failed.'))
+      catchError((error) => this.handleError(error, 'Registration failed.'))
     );
   }
 
@@ -46,58 +46,77 @@ private snackBar= inject(MatSnackBar);
     const url = `${this.baseUrl}${url_constants.auth.logout}`;
     return this.http.post(url, {}).pipe(
       tap(() => {
-        localStorage.removeItem('token');
+        localStorage.clear();
         this.router.navigate(['/login']);
       }),
-      catchError(error => this.handleError(error, 'Logout failed.'))
+      catchError((error) => this.handleError(error, 'Logout failed.'))
     );
   }
 
   getProfile(): Observable<any> {
     const url = `${this.baseUrl}${url_constants.auth.get_profile}`;
-    return this.http.get(url).pipe(
-      catchError(error => this.handleError(error, 'Failed to fetch profile.'))
-    );
+    return this.http
+      .get(url)
+      .pipe(
+        catchError((error) =>
+          this.handleError(error, 'Failed to fetch profile.')
+        )
+      );
   }
 
   updateProfile(profileData: any): Observable<any> {
     const url = `${this.baseUrl}${url_constants.auth.update_profile}`;
-    return this.http.put(url, profileData).pipe(
-      catchError(error => this.handleError(error, 'Update profile failed.'))
-    );
+    return this.http
+      .put(url, profileData)
+      .pipe(
+        catchError((error) => this.handleError(error, 'Update profile failed.'))
+      );
   }
 
   changePassword(data: any): Observable<any> {
     const url = `${this.baseUrl}${url_constants.auth.change_password}`;
-    return this.http.post(url, data).pipe(
-      catchError(error => this.handleError(error, 'Change password failed.'))
-    );
+    return this.http
+      .post(url, data)
+      .pipe(
+        catchError((error) =>
+          this.handleError(error, 'Change password failed.')
+        )
+      );
   }
 
   forgotPassword(email: string): Observable<any> {
     const url = `${this.baseUrl}${url_constants.auth.forgot_password}`;
-    return this.http.post(url, { email }).pipe(
-      catchError(error => this.handleError(error, 'Forgot password request failed.'))
-    );
+    return this.http
+      .post(url, { email })
+      .pipe(
+        catchError((error) =>
+          this.handleError(error, 'Forgot password request failed.')
+        )
+      );
   }
 
   resetPassword(data: any): Observable<any> {
     const url = `${this.baseUrl}${url_constants.auth.reset_password}`;
-    return this.http.post(url, data).pipe(
-      catchError(error => this.handleError(error, 'Reset password failed.'))
-    );
+    return this.http
+      .post(url, data)
+      .pipe(
+        catchError((error) => this.handleError(error, 'Reset password failed.'))
+      );
   }
 
   me(): Observable<any> {
     const url = `http://127.0.0.1:8000/me`;
-    return this.http.get(url).pipe(
-      catchError(error => this.handleError(error, 'Failed to fetch current user.'))
-    );
+    return this.http
+      .get(url)
+      .pipe(
+        catchError((error) =>
+          this.handleError(error, 'Failed to fetch current user.')
+        )
+      );
   }
 
   private handleError(error: HttpErrorResponse, fallbackMessage: string) {
-    const message =
-      error.error?.message || error.message || fallbackMessage;
+    const message = error.error?.message || error.message || fallbackMessage;
     this.snackBar.open(message, 'Close', { duration: 5000 });
     console.error(fallbackMessage, error);
     return throwError(() => error);

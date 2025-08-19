@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { APP_MODULES } from '../../app.module';
 import { MATERIAL_IMPORTS } from '../../material/material.module';
 import { CreateFolderDialogComponent } from '../Dialogue/create-folder-dialog/create-folder-dialog.component';
@@ -7,13 +7,14 @@ import { MatDialog } from '@angular/material/dialog';
 import { FileserviceService } from '../../Services/fileservice.service';
 import { FilePreviewComponent } from '../FilePreview/file-preview/file-preview.component';
 import { Subscription } from 'rxjs';
+import { MatMenuTrigger } from '@angular/material/menu';
 
 @Component({
   selector: 'app-file-explorer',
   standalone: true,
   imports: [
-    MATERIAL_IMPORTS,
-    APP_MODULES,
+    ...MATERIAL_IMPORTS,
+    ...APP_MODULES,
     CreateFolderDialogComponent,
     UploadFilesDialogComponent,
     FilePreviewComponent,
@@ -32,11 +33,14 @@ export class FileExplorerComponent implements OnInit, OnDestroy {
   current_path = '';
   private rootFoldersSubscription: Subscription | undefined;
   private currentFolderSubscription: Subscription | undefined;
+
+  @ViewChild(MatMenuTrigger)
+  contextMenu: MatMenuTrigger;
+
+
   ngOnInit(): void {
     this.rootFoldersSubscription = this.fileSerivce.rootFolders$.subscribe(
-      (folders) => {
-        // Keep sidebar folders in sync
-      }
+      (folders) => {}
     );
     this.currentFolderSubscription = this.fileSerivce.currentFolder$.subscribe(
       (folder) => {
@@ -299,5 +303,18 @@ export class FileExplorerComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.rootFoldersSubscription?.unsubscribe();
     this.currentFolderSubscription?.unsubscribe();
+  }
+
+
+
+  contextMenuPosition = { x: '0px', y: '0px' };
+
+  onContextMenu(event: MouseEvent, item: any) {
+    event.preventDefault();
+    this.contextMenuPosition.x = event.clientX + 'px';
+    this.contextMenuPosition.y = event.clientY + 'px';
+    this.contextMenu.menuData = { 'item': item };
+    this.contextMenu.menu.focusFirstItem('mouse');
+    this.contextMenu.openMenu();
   }
 }

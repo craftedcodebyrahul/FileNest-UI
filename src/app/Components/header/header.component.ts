@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, EventEmitter, inject, OnInit, Output } from '@angular/core';
 import { MATERIAL_IMPORTS } from '../../material/material.module';
 import { APP_MODULES } from '../../app.module';
 import { Router } from '@angular/router';
@@ -13,20 +13,17 @@ import { AuthService } from '../../Services/auth.service';
 })
 export class HeaderComponent implements OnInit {
   router = inject(Router);
+   @Output() toggleSidebar = new EventEmitter<void>();
   constructor(private authService: AuthService) {}
-    user :any
+  user: any;
   ngOnInit(): void {
-    this.authService.getProfile().subscribe((data) => {
-      this.user = data;
-    })
-
+    this.user = JSON.parse(localStorage.getItem('user') || '{}');
   }
 
-
-
   logout(): void {
-    // TODO: Implement actual logout logic (e.g., clear token, call auth service)
-    console.log('Logging out...');
-    this.authService.logout();
+    this.authService.logout().subscribe((x) => {
+
+ 
+      });
   }
 }

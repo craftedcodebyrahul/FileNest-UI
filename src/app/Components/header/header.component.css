@@ -1,19 +1,21 @@
 /* Header styles */
 .header {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 100;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000; /* Increased z-index to ensure header stays on top */
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  height: 64px;
 }
+
 .example-spacer {
-    flex: 1 1 auto;
+  flex: 1 1 auto;
 }
 
 /* User menu styles */
 .user-profile-menu {
-    min-width: 260px;
+  min-width: 260px;
   background-color: #fff !important;
   border-radius: 10px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
@@ -23,22 +25,16 @@
 .user-info-container {
   padding: 16px 20px;
   text-align: left;
+  background-color: #3f51b5; /* Primary color to match toolbar */
+  color: white;
 }
 
 .user-info-container h3 {
   margin: 0 0 10px 0;
   font-size: 17px;
   font-weight: 600;
-  color: #fff;
 }
 
-.user-info-container p {
-    margin: 0;
-    font-size: 13px;
-    line-height: 1.5;
-}
-
- 
 .user-info-field {
   display: flex;
   flex-direction: column;
@@ -47,13 +43,18 @@
 
 .user-info-field label {
   font-size: 12px;
-  color: #fff;
+  opacity: 0.9;
   margin-bottom: 2px;
 }
 
 .user-info-field span {
   font-size: 14px;
-  color: #ffff;
   font-weight: 500;
 }
-  
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .header {
+    height: 56px;
+  }
+}

@@ -20,10 +20,12 @@
     </div>
   </div>
 
+
   <div class="file-grid-container">
     <div class="file-grid">
       <!-- Folders -->
-      <div class="file-item"  *ngFor="let folder of current_directories" (dblclick)="OnClickDir(folder)" >
+      <div class="file-item" *ngFor="let folder of current_directories" (dblclick)="OnClickDir(folder)"
+        (contextmenu)="onContextMenu($event, '')">
         <mat-icon class="folder-icon">folder</mat-icon>
         <div class="file-info">
           <div class="name">{{folder}}</div>
@@ -31,7 +33,8 @@
       </div>
 
       <!-- Files -->
-      <div class="file-item" *ngFor="let file of current_files" (dblclick)="onFileClick(file)"  >
+      <div class="file-item" *ngFor="let file of current_files" (dblclick)="onFileClick(file)"
+        (contextmenu)="onContextMenu($event, '')">
         <mat-icon class="file-icon" [ngClass]="getFileIconClass(file)">
           {{ getFileIcon(file) }}
         </mat-icon>
@@ -44,11 +47,15 @@
       </div>
     </div>
   </div>
-
-
+ 
+  <div style="visibility: hidden; position: fixed" [style.left]="contextMenuPosition.x"
+    [style.top]="contextMenuPosition.y" [matMenuTriggerFor]="contextMenu">
+  </div>
 </div>
 
-<mat-menu #contextMenu>
+
+
+<mat-menu class="info-context-menu-area" #contextMenu="matMenu">
   <button mat-menu-item>
     <mat-icon>content_cut</mat-icon>
     Cut

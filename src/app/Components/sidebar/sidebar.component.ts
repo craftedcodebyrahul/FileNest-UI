@@ -25,7 +25,7 @@ export class SidebarComponent {
   }
 
   onFolderClick(folder: string) {
-    // This would trigger navigation in file explorer
+  
     this.fileService.setCurrentFolder(folder);
   }
 

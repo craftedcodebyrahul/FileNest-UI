@@ -1,8 +1,44 @@
- .main-content {
-      display: flex;
-      height:calc(100vh - 0px);;
-      overflow: hidden; 
-    }
-    .file-explorer-container {
-   width: 100%;
-    }
+.dashboard-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* make sidenav container take full space under header */
+.main-container {
+  flex: 1;
+  margin-top: 64px;  
+}
+
+.sidebar {
+  width: 280px;
+  padding: 16px;
+  /* top: 64px;   */
+}
+
+.main-sidenav-content {
+  overflow: auto;
+}
+
+.main-content {
+  display: flex;
+  height: 100%;
+  overflow: hidden;
+}
+
+.file-explorer-container {
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .main-container {
+    margin-top: 56px; /* Smaller header height on mobile */
+  }
+  
+  .sidebar {
+    top: 56px; /* Adjust for mobile header */
+  }
+}

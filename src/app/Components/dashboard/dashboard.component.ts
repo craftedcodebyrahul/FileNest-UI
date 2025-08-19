@@ -10,5 +10,9 @@ import { MATERIAL_IMPORTS } from '../../material/material.module';
   styleUrl: './dashboard.component.css'
 })
 export class DashboardComponent {
+    isSidebarOpen = true;
 
+  get isMobile(): boolean {
+    return window.innerWidth < 768; // basic breakpoint
+  }
 }

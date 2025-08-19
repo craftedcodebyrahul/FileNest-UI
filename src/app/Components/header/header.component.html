@@ -1,12 +1,26 @@
 <mat-toolbar color="primary" class="header">
-  <span>File Nest</span>
-  <span class="example-spacer"></span>
-  <button mat-icon-button [matMenuTriggerFor]="userMenu" aria-label="User notificatons">
-    <mat-icon>notificatons</mat-icon>
+  <!-- Sidebar toggle -->
+  <button mat-icon-button (click)="toggleSidebar.emit()" aria-label="Toggle sidebar">
+    <mat-icon>menu</mat-icon>
   </button>
+
+  <!-- App title -->
+  <span>File Nest</span>
+
+  <!-- Spacer -->
+  <span class="example-spacer"></span>
+
+  <!-- Notifications -->
+  <button mat-icon-button aria-label="User notifications">
+    <mat-icon>notifications</mat-icon>
+  </button>
+
+  <!-- User menu -->
   <button mat-icon-button [matMenuTriggerFor]="userMenu" aria-label="User account menu">
     <mat-icon>account_circle</mat-icon>
   </button>
+
+  <!-- User profile menu -->
   <mat-menu #userMenu="matMenu" panelClass="user-profile-menu" [hasBackdrop]="true">
     <div class="user-info-container" (click)="$event.stopPropagation()">
       <h3>{{ user?.first_name }} {{ user?.last_name }}</h3>
