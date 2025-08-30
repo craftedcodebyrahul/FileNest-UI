@@ -3,11 +3,13 @@
   <app-header (toggleSidebar)="sidenav.toggle()"></app-header>
 
   <!-- Responsive sidenav container -->
-  <mat-sidenav-container class="main-container">
+  <mat-sidenav-container class="main-container" 
+  [hasBackdrop]="isMobile? false: false">
     <!-- Sidebar -->
     <mat-sidenav #sidenav 
                  [mode]="isMobile ? 'over' : 'side'" 
                  [(opened)]="isSidebarOpen"
+                
                  class="sidebar">
       <app-sidebar></app-sidebar>
     </mat-sidenav>

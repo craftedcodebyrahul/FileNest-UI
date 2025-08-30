@@ -101,6 +101,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  color: #757575;
 }
 
 .details {

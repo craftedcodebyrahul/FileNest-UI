@@ -26,11 +26,15 @@ mat-list-item {
 mat-list-item:hover {
   background-color: #f5f5f5;
 }
+.mat-drawer-backdrop.mat-drawer-shown {
+  background-color: transparent !important; /* optional if you want no scrim */
+  pointer-events: none !important;          /* this is the key */
+}
 
 /* Mobile responsiveness */
 @media (max-width: 768px) {
   .sidebar {
-    height: calc(100% - 56px); /* Adjust for mobile header */
+    height: calc(100% - 56px); 
     top: 56px;
   }
 }

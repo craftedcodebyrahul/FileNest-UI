@@ -6,8 +6,9 @@ import { UploadFilesDialogComponent } from '../Dialogue/upload-files-dialog/uplo
 import { MatDialog } from '@angular/material/dialog';
 import { FileserviceService } from '../../Services/fileservice.service';
 import { FilePreviewComponent } from '../FilePreview/file-preview/file-preview.component';
-import { Subscription } from 'rxjs';
+import { catchError, finalize, forkJoin, of, Subscription } from 'rxjs';
 import { MatMenuTrigger } from '@angular/material/menu';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-file-explorer',
@@ -25,7 +26,8 @@ import { MatMenuTrigger } from '@angular/material/menu';
 export class FileExplorerComponent implements OnInit, OnDestroy {
   constructor(
     public dialog: MatDialog,
-    private fileSerivce: FileserviceService
+    private fileSerivce: FileserviceService,
+    private snackBar: MatSnackBar
   ) {}
   current_directories: any = [];
   current_files: any = [];
@@ -33,12 +35,16 @@ export class FileExplorerComponent implements OnInit, OnDestroy {
   current_path = '';
   private rootFoldersSubscription: Subscription | undefined;
   private currentFolderSubscription: Subscription | undefined;
-
+  contextMenuTargetType: 'file' | 'folder' | null = null;
+  clicked_active_path: string;
   @ViewChild(MatMenuTrigger)
   contextMenu: MatMenuTrigger;
-
+  isUploading = false;
+  uploadProgress = 0;
 
   ngOnInit(): void {
+   this.restoreNavigationState();
+    
     this.rootFoldersSubscription = this.fileSerivce.rootFolders$.subscribe(
       (folders) => {}
     );
@@ -46,8 +52,8 @@ export class FileExplorerComponent implements OnInit, OnDestroy {
       (folder) => {
         if (folder === '') {
           // Navigate to home
-          this.breadcrumb_paths = [];
-          this.get_all_dir_files('');
+          // this.breadcrumb_paths = [];
+          // this.get_all_dir_files('');
         } else {
           // Navigate to specific folder
           this.breadcrumb_paths = [folder];
@@ -57,38 +63,12 @@ export class FileExplorerComponent implements OnInit, OnDestroy {
     );
   }
   ngAfterViewInit(): void {
-    this.get_all_dir_files('');
+     if (this.breadcrumb_paths.length === 0) {
+      this.get_all_dir_files('');
+    }
   }
-  get_all_dir_files(path: string) {
-    this.fileSerivce.get_all_files(path).subscribe((data: any) => {
-      console.log(data);
-      this.current_directories = data.result.directories
-        ? data.result.directories
-        : [];
-      this.current_files = data.result.files ? data.result.files : [];
-      if (!path) {
-        this.fileSerivce.setRootFolders(this.current_directories);
-      }
-    });
-  }
-  create_new_directory(name: string) {
-    this.fileSerivce
-      .create_directory(name, this.breadcrumbFullPath)
-      .subscribe((data: any) => {
-        this.current_directories.push(name);
-        if (!this.breadcrumbFullPath) {
-          this.fileSerivce.addRootFolder(name);
-        }
-      });
-  }
-  OnClickDir(folderName: string) {
-    this.breadcrumb_paths.push(folderName);
-    this.get_all_dir_files(this.breadcrumbFullPath);
-  }
-  onBreadcrumbClick(index: number) {
-    this.breadcrumb_paths = this.breadcrumb_paths.slice(0, index + 1);
-    this.get_all_dir_files(this.breadcrumbFullPath);
-  }
+ 
+ 
 
   getFileIconClass(file: any): string {
     const icon = this.getFileIcon(file);
@@ -126,8 +106,7 @@ export class FileExplorerComponent implements OnInit, OnDestroy {
       }
     });
   }
-
-  openUploadFilesDialog(): void {
+openUploadFilesDialog(): void {
     const dialogRef = this.dialog.open(UploadFilesDialogComponent, {
       width: '500px',
     });
@@ -135,22 +114,69 @@ export class FileExplorerComponent implements OnInit, OnDestroy {
     dialogRef.afterClosed().subscribe((files: File[] | undefined) => {
       if (files && files.length) {
         console.log('Uploading files:', files);
+        this.uploadFiles(files);
+      }
+    });
+  }
 
-        files.forEach((file) => {
-          this.fileSerivce
-            .upload(file, this.breadcrumbFullPath)
-            .subscribe((data: any) => {
-              console.log(data);
-            });
+  uploadFiles(files: File[]) {
+    this.isUploading = true;
+    this.uploadProgress = 0;
+    
+    // Create an array of upload observables
+    const uploadObservables = files.map(file => {
+      return this.fileSerivce.upload(file, this.breadcrumbFullPath).pipe(
+        catchError(error => {
+          // Handle individual upload errors without breaking the whole process
+          console.error(`Failed to upload ${file.name}:`, error);
+          this.snackBar.open(`Failed to upload ${file.name}`, 'Close', {
+            duration: 5000,
+          });
+          return of(null); // Return null for failed uploads
+        })
+      );
+    });
 
-          // const type = this.getFileTypeFromExtension(file.name);
-          // this.files.push({
-          //   name: file.name,
-          //   size: this.formatFileSize(file.size),
-          //   date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-          //   type: type
-          // });
+    // Calculate progress
+    let completedUploads = 0;
+    const progressUpdate = () => {
+      completedUploads++;
+      this.uploadProgress = Math.round((completedUploads / files.length) * 100);
+    };
+
+    // Execute all uploads in parallel
+    forkJoin(uploadObservables.map(obs => 
+      obs.pipe(finalize(progressUpdate))
+    )).subscribe({
+      next: (results) => {
+        // Count successful uploads
+        const successfulUploads = results.filter(result => result !== null).length;
+        
+        if (successfulUploads > 0) {
+          // Only refresh the file list once after all uploads are done
+          this.get_all_dir_files(this.breadcrumbFullPath);
+          
+          // Show success message
+          this.snackBar.open(
+            `Successfully uploaded ${successfulUploads} of ${files.length} files`, 
+            'Close', 
+            { duration: 5000 }
+          );
+        } else {
+          this.snackBar.open('No files were uploaded successfully', 'Close', {
+            duration: 5000,
+          });
+        }
+      },
+      error: (error) => {
+        console.error('Upload process failed:', error);
+        this.snackBar.open('Upload process failed', 'Close', {
+          duration: 5000,
         });
+      },
+      complete: () => {
+        this.isUploading = false;
+        this.uploadProgress = 0;
       }
     });
   }
@@ -300,21 +326,124 @@ export class FileExplorerComponent implements OnInit, OnDestroy {
     // Default icon
     return 'insert_drive_file';
   }
-  ngOnDestroy(): void {
-    this.rootFoldersSubscription?.unsubscribe();
-    this.currentFolderSubscription?.unsubscribe();
+ 
+  contextMenuPosition = { x: '0px', y: '0px' };
+
+  onContextMenu(event: MouseEvent, item: any, type: 'file' | 'folder') {
+    event.preventDefault();
+    this.contextMenuPosition.x = event.clientX + 'px';
+    this.contextMenuPosition.y = event.clientY + 'px';
+    this.contextMenu.menuData = { item: item, type: type };
+    this.contextMenu.menu.focusFirstItem('mouse');
+    this.contextMenu.openMenu();
+    this.contextMenuTargetType = type;
+    // console.log(item);
+    if (type === 'file') {
+      this.clicked_active_path = item.name;
+    } else {
+      this.clicked_active_path = item;
+    }
+  }
+  OnDeleteFile() {
+    const confirmDelete = window.confirm(
+      'Are you sure you want to delete this file?'
+    );
+    if (!confirmDelete) {
+      return; // user canceled
+    }
+    this.fileSerivce
+      .deleteFile(this.breadcrumbFullPath + '/' + this.clicked_active_path)
+      .subscribe(() => {
+        this.get_all_dir_files(this.breadcrumbFullPath);
+        this.snackBar.open('File deleted successfully', 'Close', {
+          duration: 3000,
+        });
+      });
+  }
+  OnDeleteDirectory() {
+    const confirmDelete = window.confirm(
+      'Are you sure you want to delete this directory?'
+    );
+    if (!confirmDelete) {
+      return; // user canceled
+    }
+    this.fileSerivce
+      .deleteDirectory(this.breadcrumbFullPath + '/' + this.clicked_active_path)
+      .subscribe(() => {
+        this.get_all_dir_files(this.breadcrumbFullPath);
+        this.snackBar.open('Directory deleted successfully', 'Close', {
+          duration: 3000,
+        });
+      });
+  }
+
+  onDelete() {
+    if (this.contextMenuTargetType === 'file') {
+      this.OnDeleteFile();
+    } else if (this.contextMenuTargetType === 'folder') {
+      this.OnDeleteDirectory();
+    }
   }
 
 
 
-  contextMenuPosition = { x: '0px', y: '0px' };
 
-  onContextMenu(event: MouseEvent, item: any) {
-    event.preventDefault();
-    this.contextMenuPosition.x = event.clientX + 'px';
-    this.contextMenuPosition.y = event.clientY + 'px';
-    this.contextMenu.menuData = { 'item': item };
-    this.contextMenu.menu.focusFirstItem('mouse');
-    this.contextMenu.openMenu();
+    private restoreNavigationState(): void {
+    const savedPath = localStorage.getItem('fileExplorerCurrentPath');
+    if (savedPath) {
+      this.breadcrumb_paths = savedPath.split('/').filter(segment => segment !== '');
+      this.get_all_dir_files(this.breadcrumbFullPath);
+    }
+  }
+  
+  // Save navigation state to localStorage
+  private saveNavigationState(): void {
+    localStorage.setItem('fileExplorerCurrentPath', this.breadcrumbFullPath);
+  }
+  
+  get_all_dir_files(path: string) {
+    this.fileSerivce.get_all_files(path).subscribe((data: any) => {
+      console.log(data);
+      this.current_directories = data.result.directories
+        ? data.result.directories
+        : [];
+      this.current_files = data.result.files ? data.result.files : [];
+      if (!path) {
+        this.fileSerivce.setRootFolders(this.current_directories);
+      }
+      
+      // Save the current path after loading directory contents
+      this.saveNavigationState();
+    });
+  }
+  
+  create_new_directory(name: string) {
+    this.fileSerivce
+      .create_directory(name, this.breadcrumbFullPath)
+      .subscribe((data: any) => {
+        
+        // this.current_directories.push(name);
+        if (!this.breadcrumbFullPath) {
+          this.fileSerivce.addRootFolder(name);
+        }
+         this.get_all_dir_files(this.breadcrumbFullPath);
+      });
+  }
+  
+  OnClickDir(folderName: string) {
+    this.breadcrumb_paths.push(folderName);
+    this.get_all_dir_files(this.breadcrumbFullPath);
+  }
+  
+  onBreadcrumbClick(index: number) {
+    this.breadcrumb_paths = this.breadcrumb_paths.slice(0, index + 1);
+    this.get_all_dir_files(this.breadcrumbFullPath);
+  }
+
+  // ... rest of your existing methods remain the same ...
+
+  ngOnDestroy(): void {
+    this.rootFoldersSubscription?.unsubscribe();
+    this.currentFolderSubscription?.unsubscribe();
   }
 }

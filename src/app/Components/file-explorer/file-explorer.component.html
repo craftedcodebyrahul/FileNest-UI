@@ -25,7 +25,7 @@
     <div class="file-grid">
       <!-- Folders -->
       <div class="file-item" *ngFor="let folder of current_directories" (dblclick)="OnClickDir(folder)"
-        (contextmenu)="onContextMenu($event, '')">
+        (contextmenu)="onContextMenu($event, folder, 'folder')">
         <mat-icon class="folder-icon">folder</mat-icon>
         <div class="file-info">
           <div class="name">{{folder}}</div>
@@ -34,7 +34,7 @@
 
       <!-- Files -->
       <div class="file-item" *ngFor="let file of current_files" (dblclick)="onFileClick(file)"
-        (contextmenu)="onContextMenu($event, '')">
+        (contextmenu)="onContextMenu($event, file, 'file')">
         <mat-icon class="file-icon" [ngClass]="getFileIconClass(file)">
           {{ getFileIcon(file) }}
         </mat-icon>
@@ -68,8 +68,8 @@
     <mat-icon>content_paste</mat-icon>
     Paste
   </button>
-  <button mat-menu-item>
-    <mat-icon>print</mat-icon>
-    Print
+  <button mat-menu-item (click)="onDelete()">
+    <mat-icon>delete</mat-icon>
+    Delete
   </button>
 </mat-menu>

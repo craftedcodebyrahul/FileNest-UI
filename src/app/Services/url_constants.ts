@@ -13,5 +13,8 @@ export const url_constants = {
     upload: 'file/upload',
     get_all_files: 'file/files',
     create_directory: 'file/create_directory',
+    delete_file: 'file/delete_file',
+    delete_dir: 'file/delete_dir',
+
   },
 };

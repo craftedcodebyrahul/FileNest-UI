@@ -55,4 +55,10 @@ export class FileserviceService {
   setCurrentFolder(folder: string): void {
     this.currentFolderSubject.next(folder);
   }
+  deleteFile(filePath: string) {
+    return this.http.delete(`${environment.API_URL}${url_constants.file.delete_file}`, { body: { file_path: filePath } });
+  }
+  deleteDirectory(dirPath: string) {
+    return this.http.delete(`${environment.API_URL}${url_constants.file.delete_dir}`, { body: { dir_path: dirPath } });
+  }
 }
