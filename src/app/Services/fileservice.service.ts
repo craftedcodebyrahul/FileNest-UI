@@ -49,16 +49,50 @@ export class FileserviceService {
     this.rootFoldersSubject.next([...current, folder]);
   }
   // Add to FileserviceService
-  private currentFolderSubject = new BehaviorSubject<string>('');
+
+  private currentFolderSubject = new BehaviorSubject<string>(
+    localStorage.getItem('fileExplorerCurrentPath') || ''
+  );
   currentFolder$ = this.currentFolderSubject.asObservable();
 
   setCurrentFolder(folder: string): void {
     this.currentFolderSubject.next(folder);
   }
   deleteFile(filePath: string) {
-    return this.http.delete(`${environment.API_URL}${url_constants.file.delete_file}`, { body: { file_path: filePath } });
+    return this.http.delete(
+      `${environment.API_URL}${url_constants.file.delete_file}`,
+      { body: { file_path: filePath } }
+    );
   }
   deleteDirectory(dirPath: string) {
-    return this.http.delete(`${environment.API_URL}${url_constants.file.delete_dir}`, { body: { dir_path: dirPath } });
+    return this.http.delete(
+      `${environment.API_URL}${url_constants.file.delete_dir}`,
+      { body: { dir_path: dirPath } }
+    );
+  }
+  getSignedUrl(filePath: string) {
+    return this.http.get(
+      `${environment.API_URL}${url_constants.file.get_signed_url}?file_path=${filePath}`
+    );
+  }
+  renameDirectory(oldPath: string, newName: string) {
+    const formData = new FormData();
+    formData.append('old_dir_path', oldPath);
+    formData.append('new_dir_name', newName);
+
+    return this.http.post(
+      `${environment.API_URL}${url_constants.file.rename_dir}`,
+      formData
+    );
+  }
+  renameFile(oldPath: string, newName: string) {
+    const formData = new FormData();
+    formData.append('old_file_path', oldPath);
+    formData.append('new_file_name', newName);
+
+    return this.http.post(
+      `${environment.API_URL}${url_constants.file.rename_file}`,
+      formData
+    );
   }
 }

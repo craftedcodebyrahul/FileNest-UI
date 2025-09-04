@@ -9,6 +9,7 @@ import { FilePreviewComponent } from '../FilePreview/file-preview/file-preview.c
 import { catchError, finalize, forkJoin, of, Subscription } from 'rxjs';
 import { MatMenuTrigger } from '@angular/material/menu';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { error } from 'console';
 
 @Component({
   selector: 'app-file-explorer',
@@ -43,8 +44,8 @@ export class FileExplorerComponent implements OnInit, OnDestroy {
   uploadProgress = 0;
 
   ngOnInit(): void {
-   this.restoreNavigationState();
-    
+    this.restoreNavigationState();
+
     this.rootFoldersSubscription = this.fileSerivce.rootFolders$.subscribe(
       (folders) => {}
     );
@@ -52,8 +53,11 @@ export class FileExplorerComponent implements OnInit, OnDestroy {
       (folder) => {
         if (folder === '') {
           // Navigate to home
-          // this.breadcrumb_paths = [];
-          // this.get_all_dir_files('');
+          // if (this.breadcrumb_paths.length === 0) {
+          // Only reset if nothing was restored
+          this.breadcrumb_paths = [];
+          this.get_all_dir_files('');
+          // }
         } else {
           // Navigate to specific folder
           this.breadcrumb_paths = [folder];
@@ -63,12 +67,10 @@ export class FileExplorerComponent implements OnInit, OnDestroy {
     );
   }
   ngAfterViewInit(): void {
-     if (this.breadcrumb_paths.length === 0) {
+    if (this.breadcrumb_paths.length === 0) {
       this.get_all_dir_files('');
     }
   }
- 
- 
 
   getFileIconClass(file: any): string {
     const icon = this.getFileIcon(file);
@@ -96,17 +98,16 @@ export class FileExplorerComponent implements OnInit, OnDestroy {
   openCreateFolderDialog(): void {
     const dialogRef = this.dialog.open(CreateFolderDialogComponent, {
       width: '400px',
+      data: { mode: 'create' },
     });
 
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
-        console.log('Creating folder:', result);
-
         this.create_new_directory(result);
       }
     });
   }
-openUploadFilesDialog(): void {
+  openUploadFilesDialog(): void {
     const dialogRef = this.dialog.open(UploadFilesDialogComponent, {
       width: '500px',
     });
@@ -122,11 +123,11 @@ openUploadFilesDialog(): void {
   uploadFiles(files: File[]) {
     this.isUploading = true;
     this.uploadProgress = 0;
-    
+
     // Create an array of upload observables
-    const uploadObservables = files.map(file => {
+    const uploadObservables = files.map((file) => {
       return this.fileSerivce.upload(file, this.breadcrumbFullPath).pipe(
-        catchError(error => {
+        catchError((error) => {
           // Handle individual upload errors without breaking the whole process
           console.error(`Failed to upload ${file.name}:`, error);
           this.snackBar.open(`Failed to upload ${file.name}`, 'Close', {
@@ -145,21 +146,23 @@ openUploadFilesDialog(): void {
     };
 
     // Execute all uploads in parallel
-    forkJoin(uploadObservables.map(obs => 
-      obs.pipe(finalize(progressUpdate))
-    )).subscribe({
+    forkJoin(
+      uploadObservables.map((obs) => obs.pipe(finalize(progressUpdate)))
+    ).subscribe({
       next: (results) => {
         // Count successful uploads
-        const successfulUploads = results.filter(result => result !== null).length;
-        
+        const successfulUploads = results.filter(
+          (result) => result !== null
+        ).length;
+
         if (successfulUploads > 0) {
           // Only refresh the file list once after all uploads are done
           this.get_all_dir_files(this.breadcrumbFullPath);
-          
+
           // Show success message
           this.snackBar.open(
-            `Successfully uploaded ${successfulUploads} of ${files.length} files`, 
-            'Close', 
+            `Successfully uploaded ${successfulUploads} of ${files.length} files`,
+            'Close',
             { duration: 5000 }
           );
         } else {
@@ -177,7 +180,7 @@ openUploadFilesDialog(): void {
       complete: () => {
         this.isUploading = false;
         this.uploadProgress = 0;
-      }
+      },
     });
   }
 
@@ -196,15 +199,21 @@ openUploadFilesDialog(): void {
   }
 
   onFileClick(file: any): any {
-    // return file;
-    this.dialog.open(FilePreviewComponent, {
-      data: file,
-      width: '80vw', // Better to use viewport units
-      height: '80vh',
-      maxWidth: '1000px', // Set maximum dimensions
-      maxHeight: '800px',
-      panelClass: 'file-preview-dialog',
-      autoFocus: false,
+    debugger;
+    var file_url =
+      this.breadcrumb_paths.length == 0
+        ? file.name
+        : this.breadcrumbFullPath + '/' + file.name;
+    this.fileSerivce.getSignedUrl(file_url).subscribe((url: any) => {
+      this.dialog.open(FilePreviewComponent, {
+        data: { file: file, url: url.result },
+        width: '80vw', // Better to use viewport units
+        height: '80vh',
+        maxWidth: '1000px', // Set maximum dimensions
+        maxHeight: '800px',
+        panelClass: 'file-preview-dialog',
+        autoFocus: false,
+      });
     });
   }
 
@@ -326,7 +335,7 @@ openUploadFilesDialog(): void {
     // Default icon
     return 'insert_drive_file';
   }
- 
+
   contextMenuPosition = { x: '0px', y: '0px' };
 
   onContextMenu(event: MouseEvent, item: any, type: 'file' | 'folder') {
@@ -385,22 +394,22 @@ openUploadFilesDialog(): void {
     }
   }
 
-
-
-
-    private restoreNavigationState(): void {
+  private restoreNavigationState(): void {
     const savedPath = localStorage.getItem('fileExplorerCurrentPath');
     if (savedPath) {
-      this.breadcrumb_paths = savedPath.split('/').filter(segment => segment !== '');
+      this.breadcrumb_paths = savedPath
+        .split('/')
+        .filter((segment) => segment !== '');
+      this.fileSerivce.setCurrentFolder(this.breadcrumbFullPath); // <--
       this.get_all_dir_files(this.breadcrumbFullPath);
     }
   }
-  
+
   // Save navigation state to localStorage
   private saveNavigationState(): void {
     localStorage.setItem('fileExplorerCurrentPath', this.breadcrumbFullPath);
   }
-  
+
   get_all_dir_files(path: string) {
     this.fileSerivce.get_all_files(path).subscribe((data: any) => {
       console.log(data);
@@ -411,30 +420,29 @@ openUploadFilesDialog(): void {
       if (!path) {
         this.fileSerivce.setRootFolders(this.current_directories);
       }
-      
+
       // Save the current path after loading directory contents
       this.saveNavigationState();
     });
   }
-  
+
   create_new_directory(name: string) {
     this.fileSerivce
       .create_directory(name, this.breadcrumbFullPath)
       .subscribe((data: any) => {
-        
         // this.current_directories.push(name);
         if (!this.breadcrumbFullPath) {
           this.fileSerivce.addRootFolder(name);
         }
-         this.get_all_dir_files(this.breadcrumbFullPath);
+        this.get_all_dir_files(this.breadcrumbFullPath);
       });
   }
-  
+
   OnClickDir(folderName: string) {
     this.breadcrumb_paths.push(folderName);
     this.get_all_dir_files(this.breadcrumbFullPath);
   }
-  
+
   onBreadcrumbClick(index: number) {
     this.breadcrumb_paths = this.breadcrumb_paths.slice(0, index + 1);
     this.get_all_dir_files(this.breadcrumbFullPath);
@@ -445,5 +453,61 @@ openUploadFilesDialog(): void {
   ngOnDestroy(): void {
     this.rootFoldersSubscription?.unsubscribe();
     this.currentFolderSubscription?.unsubscribe();
+  }
+
+  onRenameDirectory(newName: string) {
+    const oldName = this.breadcrumbFullPath + '/' + this.clicked_active_path;
+
+    this.fileSerivce.renameDirectory(oldName, newName).subscribe({
+    next: res => {
+      this.get_all_dir_files(this.breadcrumbFullPath);
+      this.snackBar.open('Directory renamed successfully', 'Close', {
+        duration: 3000,
+      });
+    },
+    error: err => {
+      console.error('Error renaming directory:', err);
+      this.snackBar.open('Failed to rename directory: ' + err.error.detail, 'Close', {
+        duration: 6000,
+      });
+    }
+  });
+  }
+  onRenameFile(newName: string) {
+    const oldName = this.breadcrumbFullPath + '/' + this.clicked_active_path;
+
+    this.fileSerivce.renameFile(oldName, newName).subscribe({
+      next: res => {
+        this.get_all_dir_files(this.breadcrumbFullPath);
+        this.snackBar.open('File renamed successfully', 'Close', {
+          duration: 3000,
+        });
+      },
+      error: err => {
+        console.error('Error renaming file:', err);
+        this.snackBar.open('Failed to rename file: ' + err.error.detail, 'Close', {
+          duration: 6000,
+        });
+      }
+    });
+  }
+  onRename( ) {
+    const dialogRef = this.dialog.open(CreateFolderDialogComponent, {
+      width: '400px',
+      data: {
+        mode: 'rename',
+        initialName: this.clicked_active_path,
+      },
+    });
+
+    dialogRef.afterClosed().subscribe((newName) => {
+      if (newName && newName !== this.clicked_active_path) {
+        if (this.contextMenuTargetType === 'folder') {
+          this.onRenameDirectory(newName);
+        } else {
+          this.onRenameFile(newName);
+        }
+      }
+    });
   }
 }

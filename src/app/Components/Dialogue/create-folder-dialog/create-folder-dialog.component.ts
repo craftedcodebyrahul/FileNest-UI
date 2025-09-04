@@ -6,9 +6,9 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 @Component({
   selector: 'app-create-folder-dialog',
   standalone: true,
-  imports: [...APP_MODULES,...MATERIAL_IMPORTS],
+  imports: [...APP_MODULES, ...MATERIAL_IMPORTS],
   templateUrl: './create-folder-dialog.component.html',
-  styleUrl: './create-folder-dialog.component.css'
+  styleUrl: './create-folder-dialog.component.css',
 })
 export class CreateFolderDialogComponent {
   folderName = '';
@@ -16,13 +16,18 @@ export class CreateFolderDialogComponent {
   constructor(
     public dialogRef: MatDialogRef<CreateFolderDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any
-  ) {}
+  ) {
+    // if it's rename, pre-fill the name
+    if (data?.initialName) {
+      this.folderName = data.initialName;
+    }
+  }
 
   onCancel(): void {
     this.dialogRef.close();
   }
 
-  onCreate(): void {
+  onConfirm(): void {
     if (this.folderName.trim()) {
       this.dialogRef.close(this.folderName.trim());
     }

@@ -1,3 +1,5 @@
+import { get } from "node:http";
+
 export const url_constants = {
   auth: {
     login: 'auth/login',
@@ -15,6 +17,8 @@ export const url_constants = {
     create_directory: 'file/create_directory',
     delete_file: 'file/delete_file',
     delete_dir: 'file/delete_dir',
-
+    get_signed_url: 'file/get_signed_url',
+    rename_dir: 'file/rename_dir',
+    rename_file: 'file/rename_file',
   },
 };

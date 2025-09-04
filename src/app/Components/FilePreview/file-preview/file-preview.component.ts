@@ -15,11 +15,11 @@ export class FilePreviewComponent {
   constructor(@Inject(MAT_DIALOG_DATA) public data: any) {}
 
   get isImage(): boolean {
-    return this.data.mimetype.startsWith('image/');
+    return this.data.file.mimetype.startsWith('image/');
   }
 
   get isPdf(): boolean {
-    return this.data.mimetype === 'application/pdf';
+    return this.data.file.mimetype === 'application/pdf';
   }
 
   get isOfficeDoc(): boolean {
@@ -28,7 +28,7 @@ export class FilePreviewComponent {
       'application/msword',
       'application/vnd.ms-excel',
     ];
-    return officeTypes.some((type) => this.data.mimetype.includes(type));
+    return officeTypes.some((type) => this.data.file.mimetype.includes(type));
   }
   openInBrowser(): void {
     window.open(this.data.url, '_blank');
