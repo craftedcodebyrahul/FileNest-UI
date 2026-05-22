@@ -1,19 +1,74 @@
-<div class="container">
-  <div class="registration form">
-    <header>Signup</header>
-    <form [formGroup]="form">
-      <input type="text" formControlName="first_name" placeholder="Enter your first name" autocomplete="new-username" />
-      <input type="text" formControlName="last_name" placeholder="Enter your last name" autocomplete="new-username" />
-      <input type="text" formControlName="phone_number" placeholder="Enter your phone number" autocomplete="new-username" />
-      <input type="email" formControlName="email" placeholder="Enter your email" autocomplete="new-username" />
-      <input type="password" formControlName="password" placeholder="Create a password" autocomplete="new-password" />
-      <input type="password"  placeholder="Confirm your password" />
-      <input type="button" class="button" (click)="onSignup()" value="Signup" />
-    </form>
-    <div class="signup">
-      <span>Already have an account?
-        <a routerLink="/login">Login</a>
-      </span>
+<div class="auth-bg">
+  <div class="auth-card">
+
+    <!-- Brand -->
+    <div class="brand">
+      <div class="brand-icon">
+        <mat-icon>folder_special</mat-icon>
+      </div>
+      <h1 class="brand-name">Create Account</h1>
+      <p class="brand-tagline">Join FileNest and manage your files</p>
     </div>
+
+    <!-- Form -->
+    <form [formGroup]="form" (ngSubmit)="onSignup()" class="auth-form" novalidate>
+
+      <div class="name-row">
+        <mat-form-field appearance="outline" class="half-width">
+          <mat-label>First name</mat-label>
+          <input matInput formControlName="first_name" placeholder="John" autocomplete="given-name" />
+          <mat-error *ngIf="form.get('first_name')?.hasError('required')">Required</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="half-width">
+          <mat-label>Last name</mat-label>
+          <input matInput formControlName="last_name" placeholder="Doe" autocomplete="family-name" />
+          <mat-error *ngIf="form.get('last_name')?.hasError('required')">Required</mat-error>
+        </mat-form-field>
+      </div>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Phone number</mat-label>
+        <mat-icon matPrefix>phone</mat-icon>
+        <input matInput formControlName="phone_number" placeholder="+1 555 000 0000" autocomplete="tel" />
+        <mat-error *ngIf="form.get('phone_number')?.hasError('required')">Phone is required</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Email address</mat-label>
+        <mat-icon matPrefix>email</mat-icon>
+        <input matInput type="email" formControlName="email" placeholder="you@example.com" autocomplete="email" />
+        <mat-error *ngIf="form.get('email')?.hasError('required')">Email is required</mat-error>
+        <mat-error *ngIf="form.get('email')?.hasError('email')">Enter a valid email</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Password</mat-label>
+        <mat-icon matPrefix>lock</mat-icon>
+        <input matInput [type]="hidePassword ? 'password' : 'text'" formControlName="password"
+               placeholder="Min. 8 characters" autocomplete="new-password" />
+        <button mat-icon-button matSuffix type="button" (click)="hidePassword = !hidePassword"
+                [attr.aria-label]="hidePassword ? 'Show password' : 'Hide password'">
+          <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+        </button>
+        <mat-error *ngIf="form.get('password')?.hasError('required')">Password is required</mat-error>
+        <mat-error *ngIf="form.get('password')?.hasError('minlength')">Minimum 8 characters</mat-error>
+      </mat-form-field>
+
+      <button mat-flat-button class="submit-btn" type="submit" [disabled]="form.invalid || isLoading">
+        <mat-spinner *ngIf="isLoading" diameter="20" class="btn-spinner"></mat-spinner>
+        <ng-container *ngIf="!isLoading">
+          Create account
+          <mat-icon>arrow_forward</mat-icon>
+        </ng-container>
+      </button>
+
+    </form>
+
+    <p class="switch-auth">
+      Already have an account?
+      <a routerLink="/login">Sign in</a>
+    </p>
+
   </div>
 </div>

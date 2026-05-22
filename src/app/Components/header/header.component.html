@@ -1,46 +1,62 @@
-<mat-toolbar color="primary" class="header">
+<mat-toolbar class="app-header">
+
   <!-- Sidebar toggle -->
-  <button mat-icon-button (click)="toggleSidebar.emit()" aria-label="Toggle sidebar">
+  <button mat-icon-button class="menu-btn" (click)="toggleSidebar.emit()" aria-label="Toggle sidebar">
     <mat-icon>menu</mat-icon>
   </button>
 
-  <!-- App title -->
-  <span>File Nest</span>
+  <!-- Brand -->
+  <div class="brand">
+    <div class="brand-icon">
+      <mat-icon>folder_special</mat-icon>
+    </div>
+    <span class="brand-name">FileNest</span>
+  </div>
 
   <!-- Spacer -->
-  <span class="example-spacer"></span>
+  <span class="spacer"></span>
+
+  <!-- Search bar (hidden on small screens) -->
+  <div class="search-bar">
+    <mat-icon class="search-icon">search</mat-icon>
+    <input class="search-input" type="text" placeholder="Search files…" aria-label="Search files" />
+  </div>
+
+  <span class="spacer"></span>
 
   <!-- Notifications -->
-  <button mat-icon-button aria-label="User notifications">
-    <mat-icon>notifications</mat-icon>
+  <button mat-icon-button class="icon-btn" aria-label="Notifications" matTooltip="Notifications">
+    <mat-icon>notifications_none</mat-icon>
   </button>
 
-  <!-- User menu -->
-  <button mat-icon-button [matMenuTriggerFor]="userMenu" aria-label="User account menu">
-    <mat-icon>account_circle</mat-icon>
+  <!-- Avatar / User menu -->
+  <button mat-icon-button class="avatar-btn" [matMenuTriggerFor]="userMenu" aria-label="User account menu">
+    <div class="avatar">{{ userInitials }}</div>
   </button>
 
   <!-- User profile menu -->
-  <mat-menu #userMenu="matMenu" panelClass="user-profile-menu" [hasBackdrop]="true">
-    <div class="user-info-container" (click)="$event.stopPropagation()">
-      <h3>{{ user?.first_name }} {{ user?.last_name }}</h3>
-
-      <div class="user-info-field">
-        <label>Email:</label>
-        <span>{{ user?.email }}</span>
-      </div>
-
-      <div class="user-info-field">
-        <label>Phone:</label>
-        <span>{{ user?.phone_number }}</span>
+  <mat-menu #userMenu="matMenu" panelClass="user-profile-panel" [hasBackdrop]="true">
+    <div class="menu-user-header" (click)="$event.stopPropagation()">
+      <div class="menu-avatar">{{ userInitials }}</div>
+      <div class="menu-user-info">
+        <span class="menu-user-name">{{ user?.first_name }} {{ user?.last_name }}</span>
+        <span class="menu-user-email">{{ user?.email }}</span>
       </div>
     </div>
 
     <mat-divider></mat-divider>
 
-    <button mat-menu-item (click)="logout()">
+    <button mat-menu-item class="menu-item-detail" (click)="$event.stopPropagation()">
+      <mat-icon>phone</mat-icon>
+      <span>{{ user?.phone_number || 'No phone' }}</span>
+    </button>
+
+    <mat-divider></mat-divider>
+
+    <button mat-menu-item class="menu-item-logout" (click)="logout()">
       <mat-icon>logout</mat-icon>
-      <span>Logout</span>
+      <span>Sign out</span>
     </button>
   </mat-menu>
+
 </mat-toolbar>

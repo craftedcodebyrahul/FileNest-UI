@@ -1,35 +1,49 @@
-<!-- file-preview.component.html -->
-<div class="dialog-container">
-  <h2 mat-dialog-title>{{ data.name }}</h2>
+<div class="preview-shell">
 
-  <mat-dialog-content>
-    <!-- Image Preview -->
-    <img *ngIf="isImage" [src]="data.url" [alt]="data.name" class="preview-image">
+  <!-- Header -->
+  <div class="preview-header">
+    <div class="preview-title-row">
+      <mat-icon class="preview-file-icon">insert_drive_file</mat-icon>
+      <h2 class="preview-title" [title]="data.file.name">{{ data.file.name }}</h2>
+    </div>
+    <div class="preview-header-actions">
+      <a mat-icon-button [href]="data.url" target="_blank" matTooltip="Download"
+         *ngIf="isImage || isPdf || isOfficeDoc" aria-label="Download file">
+        <mat-icon>download</mat-icon>
+      </a>
+      <button mat-icon-button mat-dialog-close aria-label="Close preview">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+  </div>
 
-    <!-- PDF Preview -->
+  <!-- Content -->
+  <mat-dialog-content class="preview-content">
+
+    <!-- Image -->
+    <img *ngIf="isImage" [src]="data.url" [alt]="data.file.name" class="preview-image" />
+
+    <!-- PDF -->
     <iframe *ngIf="isPdf" [src]="data.url | safeUrl" class="preview-frame" title="PDF Preview"></iframe>
 
-    <!-- Office Docs Preview -->
-    <iframe *ngIf="isOfficeDoc" [src]="'https://view.officeapps.live.com/op/embed.aspx?src=' + data.url | safeUrl"
-      class="preview-frame" title="Document Preview"></iframe>
+    <!-- Office docs -->
+    <iframe *ngIf="isOfficeDoc"
+            [src]="'https://view.officeapps.live.com/op/embed.aspx?src=' + data.url | safeUrl"
+            class="preview-frame" title="Document Preview"></iframe>
 
-    <!-- Unsupported Files -->
+    <!-- Unsupported -->
     <div *ngIf="!isImage && !isPdf && !isOfficeDoc" class="unsupported">
-      <div class="unsupported-content">
-        <mat-icon class="file-icon">insert_drive_file</mat-icon>
-        <p class="message">Preview not available in this viewer</p>
-        <button mat-raised-button color="primary" class="browser-button" (click)="openInBrowser()">
-          <mat-icon class="button-icon">open_in_browser</mat-icon>
-          <span class="button-text">Open in Browser</span>
-        </button>
+      <div class="unsupported-icon-wrap">
+        <mat-icon>insert_drive_file</mat-icon>
       </div>
+      <p class="unsupported-title">Preview not available</p>
+      <p class="unsupported-sub">This file type can't be previewed in the browser</p>
+      <button mat-flat-button class="open-btn" (click)="openInBrowser()">
+        <mat-icon>open_in_new</mat-icon>
+        Open in browser
+      </button>
     </div>
+
   </mat-dialog-content>
 
-  <mat-dialog-actions align="end">
-    <a mat-button [href]="data.url" target="_blank" color="primary" *ngIf="isImage || isPdf || isOfficeDoc">
-      <mat-icon>download</mat-icon> Download
-    </a>
-    <button mat-button mat-dialog-close>Close</button>
-  </mat-dialog-actions>
 </div>

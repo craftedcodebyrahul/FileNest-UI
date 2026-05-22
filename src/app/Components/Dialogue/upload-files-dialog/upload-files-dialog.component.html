@@ -1,26 +1,65 @@
- <h2 mat-dialog-title>Upload Files</h2>
-    <mat-dialog-content>
-      <div class="drop-area" (dragover)="onDragOver($event)" (drop)="onDrop($event)">
-        <input type="file" #fileInput multiple (change)="onFilesSelected($event)" style="display: none">
-        <p>Drag & drop files here or</p>
-        <button mat-raised-button (click)="fileInput.click()">
-          <mat-icon>file_upload</mat-icon>
-          Select Files
-        </button>
-        <div *ngIf="selectedFiles.length" class="file-list">
-          <h3>Selected Files:</h3>
-          <ul>
-            <li *ngFor="let file of selectedFiles">{{ file.name }}</li>
-          </ul>
-        </div>
+<div class="dialog-shell">
+
+  <div class="dialog-header">
+    <div class="dialog-title-row">
+      <div class="dialog-icon">
+        <mat-icon>cloud_upload</mat-icon>
       </div>
-    </mat-dialog-content>
-    <mat-dialog-actions align="end">
-      <button mat-button (click)="onCancel()">Cancel</button>
-      <button mat-raised-button 
-              color="primary" 
-              (click)="onUpload()"
-              [disabled]="!selectedFiles.length">
-        Upload
-      </button>
-    </mat-dialog-actions>
+      <h2 class="dialog-title">Upload Files</h2>
+    </div>
+    <button mat-icon-button class="close-btn" (click)="onCancel()" aria-label="Close dialog">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <mat-dialog-content class="dialog-body">
+
+    <!-- Drop zone -->
+    <div class="drop-zone"
+         [class.drag-active]="dragOver"
+         (dragover)="onDragOver($event)"
+         (dragleave)="dragOver = false"
+         (drop)="onDrop($event)"
+         (click)="fileInput.click()"
+         role="button"
+         tabindex="0"
+         aria-label="Click or drag files here to upload"
+         (keydown.enter)="fileInput.click()">
+      <input #fileInput type="file" multiple (change)="onFilesSelected($event)" style="display:none" />
+
+      <div class="drop-zone-content">
+        <div class="drop-icon-wrap">
+          <mat-icon class="drop-icon">upload_file</mat-icon>
+        </div>
+        <p class="drop-primary">Drag & drop files here</p>
+        <p class="drop-secondary">or <span class="drop-link">browse to upload</span></p>
+        <p class="drop-hint">Any file type supported</p>
+      </div>
+    </div>
+
+    <!-- Selected files list -->
+    <div class="file-list" *ngIf="selectedFiles.length">
+      <p class="file-list-title">
+        <mat-icon>check_circle</mat-icon>
+        {{ selectedFiles.length }} file{{ selectedFiles.length > 1 ? 's' : '' }} selected
+      </p>
+      <ul class="file-items">
+        <li class="file-item" *ngFor="let file of selectedFiles">
+          <mat-icon class="file-item-icon">insert_drive_file</mat-icon>
+          <span class="file-item-name">{{ file.name }}</span>
+          <span class="file-item-size">{{ (file.size / 1024).toFixed(1) }} KB</span>
+        </li>
+      </ul>
+    </div>
+
+  </mat-dialog-content>
+
+  <div class="dialog-actions">
+    <button mat-stroked-button class="cancel-btn" (click)="onCancel()">Cancel</button>
+    <button mat-flat-button class="upload-btn" (click)="onUpload()" [disabled]="!selectedFiles.length">
+      <mat-icon>cloud_upload</mat-icon>
+      Upload {{ selectedFiles.length > 0 ? '(' + selectedFiles.length + ')' : '' }}
+    </button>
+  </div>
+
+</div>

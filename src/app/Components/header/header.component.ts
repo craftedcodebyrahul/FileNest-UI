@@ -20,6 +20,12 @@ export class HeaderComponent implements OnInit {
     this.user = JSON.parse(localStorage.getItem('user') || '{}');
   }
 
+  get userInitials(): string {
+    const f = this.user?.first_name?.[0] ?? '';
+    const l = this.user?.last_name?.[0] ?? '';
+    return (f + l).toUpperCase() || 'U';
+  }
+
   logout(): void {
     this.authService.logout().subscribe((x) => {
 

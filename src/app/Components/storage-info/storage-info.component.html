@@ -1,9 +1,15 @@
-<div class="storage-info">
-      <h3>Storage</h3>
-      <p>65% of 15GB used</p>
-      <mat-progress-bar mode="determinate" value="65"></mat-progress-bar>
-      <div class="stats">
-        <span>9.8 GB used</span>
-        <span>5.2 GB free</span>
-      </div>
-    </div>
+<div class="storage-card">
+  <div class="storage-header">
+    <mat-icon class="storage-icon">storage</mat-icon>
+    <span class="storage-title">Storage</span>
+  </div>
+
+  <mat-progress-bar class="storage-bar" mode="determinate" value="65" color="primary"></mat-progress-bar>
+
+  <div class="storage-stats">
+    <span class="used">9.8 GB used</span>
+    <span class="total">15 GB</span>
+  </div>
+
+  <p class="storage-sub">5.2 GB free remaining</p>
+</div>

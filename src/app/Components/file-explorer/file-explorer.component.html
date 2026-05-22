@@ -1,75 +1,165 @@
-<div class="file-explorer">
-  <div class="navigation">
-    <div class="breadcrumb">
-      <a (click)="breadcrumb_paths = []; get_all_dir_files('')">Home</a>
-      <span *ngFor="let crumb of breadcrumb_paths; let i = index">
-        <span class="separator">›</span>
-        <a (click)="onBreadcrumbClick(i)">{{ crumb }}</a>
-      </span>
-    </div>
+<div class="explorer-shell">
 
-    <div class="actions">
-      <button mat-raised-button color="primary" (click)="openCreateFolderDialog()">
-        <mat-icon>create_new_folder</mat-icon>
-        New Folder
+  <!-- ── Top bar ── -->
+  <div class="explorer-topbar">
+
+    <!-- Breadcrumb -->
+    <nav class="breadcrumb" aria-label="File path">
+      <a class="crumb crumb-home"
+         (click)="breadcrumb_paths = []; get_all_dir_files('')"
+         role="button" tabindex="0"
+         (keydown.enter)="breadcrumb_paths = []; get_all_dir_files('')">
+        <mat-icon>home</mat-icon>
+        <span>Home</span>
+      </a>
+      <ng-container *ngFor="let crumb of breadcrumb_paths; let i = index">
+        <mat-icon class="crumb-sep">chevron_right</mat-icon>
+        <a class="crumb" (click)="onBreadcrumbClick(i)" role="button" tabindex="0"
+           (keydown.enter)="onBreadcrumbClick(i)">{{ crumb }}</a>
+      </ng-container>
+    </nav>
+
+    <!-- Actions -->
+    <div class="topbar-actions">
+      <!-- Paste button (visible when clipboard has content) -->
+      <button mat-stroked-button class="action-btn paste-btn"
+              *ngIf="clipboard"
+              (click)="onPaste()"
+              matTooltip="Paste '{{ clipboard?.name }}' here">
+        <mat-icon>content_paste</mat-icon>
+        <span class="btn-label">Paste</span>
       </button>
-      <button mat-raised-button (click)="openUploadFilesDialog()">
+
+      <button mat-stroked-button class="action-btn" (click)="openCreateFolderDialog()">
+        <mat-icon>create_new_folder</mat-icon>
+        <span class="btn-label">New Folder</span>
+      </button>
+      <button mat-flat-button class="action-btn upload-btn" (click)="openUploadFilesDialog()">
         <mat-icon>cloud_upload</mat-icon>
-        Upload Files
+        <span class="btn-label">Upload</span>
       </button>
     </div>
   </div>
 
+  <!-- ── Upload progress ── -->
+  <div class="upload-progress-bar" *ngIf="isUploading">
+    <mat-progress-bar mode="determinate" [value]="uploadProgress" color="primary"></mat-progress-bar>
+    <span class="upload-progress-label">Uploading… {{ uploadProgress }}%</span>
+  </div>
 
-  <div class="file-grid-container">
-    <div class="file-grid">
+  <!-- ── Clipboard banner ── -->
+  <div class="clipboard-banner" *ngIf="clipboard">
+    <mat-icon>content_cut</mat-icon>
+    <span>"{{ clipboard.name }}" ready to move — navigate to destination and click Paste</span>
+    <button mat-icon-button (click)="clipboard = null" matTooltip="Clear clipboard" aria-label="Clear clipboard">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <!-- ── File grid ── -->
+  <div class="explorer-content">
+
+    <!-- Empty state -->
+    <div class="empty-state" *ngIf="current_directories.length === 0 && current_files.length === 0">
+      <mat-icon class="empty-icon">folder_open</mat-icon>
+      <p class="empty-title">This folder is empty</p>
+      <p class="empty-sub">Upload files or create a new folder to get started</p>
+    </div>
+
+    <!-- Grid -->
+    <div class="file-grid" *ngIf="current_directories.length > 0 || current_files.length > 0">
+
       <!-- Folders -->
-      <div class="file-item" *ngFor="let folder of current_directories" (dblclick)="OnClickDir(folder)"
-        (contextmenu)="onContextMenu($event, folder, 'folder')">
-        <mat-icon class="folder-icon">folder</mat-icon>
-        <div class="file-info">
-          <div class="name">{{folder}}</div>
+      <div class="file-card folder-card"
+           *ngFor="let folder of current_directories"
+           (click)="onCardClick($event, folder, 'folder')"
+           (dblclick)="OnClickDir(folder)"
+           (contextmenu)="onContextMenu($event, folder, 'folder')"
+           (touchstart)="onTouchStart($event, folder, 'folder')"
+           (touchend)="onTouchEnd()"
+           (touchmove)="onTouchMove()"
+           role="button"
+           tabindex="0"
+           [attr.aria-label]="'Folder: ' + folder"
+           (keydown.enter)="OnClickDir(folder)">
+        <div class="card-icon-wrap folder-wrap">
+          <mat-icon class="card-icon">folder</mat-icon>
         </div>
+        <div class="card-info">
+          <span class="card-name" [title]="folder">{{ folder }}</span>
+          <span class="card-meta">Folder</span>
+        </div>
+        <button mat-icon-button class="card-menu-btn"
+                (click)="$event.stopPropagation(); onContextMenu($event, folder, 'folder')"
+                aria-label="More options">
+          <mat-icon>more_vert</mat-icon>
+        </button>
       </div>
 
       <!-- Files -->
-      <div class="file-item" *ngFor="let file of current_files" (dblclick)="onFileClick(file)"
-        (contextmenu)="onContextMenu($event, file, 'file')">
-        <mat-icon class="file-icon" [ngClass]="getFileIconClass(file)">
-          {{ getFileIcon(file) }}
-        </mat-icon>
-        <div class="file-info">
-          <div class="name">{{ file.name }}</div>
-          <div class="details">
-            {{ formatFileSize(file.size) }} • {{ file.updatedAt | date:"dd/MM/yy hh:mm a" }}
-          </div>
+      <div class="file-card"
+           *ngFor="let file of current_files"
+           (click)="onCardClick($event, file, 'file')"
+           (dblclick)="onFileClick(file)"
+           (contextmenu)="onContextMenu($event, file, 'file')"
+           (touchstart)="onTouchStart($event, file, 'file')"
+           (touchend)="onTouchEnd()"
+           (touchmove)="onTouchMove()"
+           role="button"
+           tabindex="0"
+           [attr.aria-label]="'File: ' + file.name"
+           (keydown.enter)="onFileClick(file)">
+        <div class="card-icon-wrap" [ngClass]="getFileIconClass(file) + '-wrap'">
+          <mat-icon class="card-icon" [ngClass]="getFileIconClass(file)">
+            {{ getFileIcon(file) }}
+          </mat-icon>
         </div>
+        <div class="card-info">
+          <span class="card-name" [title]="file.name">{{ file.name }}</span>
+          <span class="card-meta">{{ formatFileSize(file.size) }} · {{ file.updatedAt | date:'dd MMM yy' }}</span>
+        </div>
+        <button mat-icon-button class="card-menu-btn"
+                (click)="$event.stopPropagation(); onContextMenu($event, file, 'file')"
+                aria-label="More options">
+          <mat-icon>more_vert</mat-icon>
+        </button>
       </div>
+
     </div>
   </div>
- 
-  <div style="visibility: hidden; position: fixed" [style.left]="contextMenuPosition.x"
-    [style.top]="contextMenuPosition.y" [matMenuTriggerFor]="contextMenu">
+
+  <!-- Hidden context menu trigger (desktop) -->
+  <div style="visibility:hidden; position:fixed"
+       [style.left]="contextMenuPosition.x"
+       [style.top]="contextMenuPosition.y"
+       [matMenuTriggerFor]="contextMenu">
   </div>
+
 </div>
 
-
-
-<mat-menu class="info-context-menu-area" #contextMenu="matMenu">
-  <button mat-menu-item (click)="onRename()">
-    <mat-icon>edit</mat-icon>
-    Rename
-  </button>
-  <button mat-menu-item>
-    <mat-icon>content_copy</mat-icon>
-    Copy
-  </button>
-  <button mat-menu-item>
-    <mat-icon>content_paste</mat-icon>
-    Paste
-  </button>
-  <button mat-menu-item (click)="onDelete()">
-    <mat-icon>delete</mat-icon>
-    Delete
-  </button>
+<!-- Desktop context menu -->
+<mat-menu #contextMenu="matMenu" class="context-menu-panel">
+  <ng-template matMenuContent let-item="item" let-type="type">
+    <button mat-menu-item (click)="onRename()">
+      <mat-icon>drive_file_rename_outline</mat-icon>
+      <span>Rename</span>
+    </button>
+    <button mat-menu-item (click)="onCut()">
+      <mat-icon>content_cut</mat-icon>
+      <span>Cut (Move)</span>
+    </button>
+    <button mat-menu-item *ngIf="clipboard" (click)="onPaste()">
+      <mat-icon>content_paste</mat-icon>
+      <span>Paste here</span>
+    </button>
+    <button mat-menu-item *ngIf="contextMenuTargetType === 'file'" (click)="onDownload()">
+      <mat-icon>download</mat-icon>
+      <span>Download</span>
+    </button>
+    <mat-divider></mat-divider>
+    <button mat-menu-item class="delete-item" (click)="onDelete()">
+      <mat-icon>delete_outline</mat-icon>
+      <span>Delete</span>
+    </button>
+  </ng-template>
 </mat-menu>

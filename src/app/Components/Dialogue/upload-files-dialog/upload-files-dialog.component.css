@@ -1,22 +1,223 @@
-.drop-area {
-      border: 2px dashed #ccc;
-      border-radius: 4px;
-      padding: 20px;
-      text-align: center;
-      min-height: 150px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-    }
-    .drop-area.drag-over {
-      border-color: #3f51b5;
-      background-color: rgba(63, 81, 181, 0.1);
-    }
-    .file-list {
-      margin-top: 15px;
-      text-align: left;
-    }
-    ul {
-      padding-left: 20px;
-    }
+/* ── Dialog shell ── */
+.dialog-shell {
+  display: flex;
+  flex-direction: column;
+  min-width: 420px;
+  max-width: 100%;
+}
+
+/* ── Header ── */
+.dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 20px 0;
+}
+
+.dialog-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dialog-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: linear-gradient(135deg, #4f46e5, #06b6d4);
+  border-radius: 8px;
+}
+
+.dialog-icon mat-icon {
+  color: #fff;
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+.dialog-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+.close-btn {
+  color: #94a3b8 !important;
+}
+
+/* ── Body ── */
+.dialog-body {
+  padding: 16px 20px !important;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+/* ── Drop zone ── */
+.drop-zone {
+  border: 2px dashed #c7d2fe;
+  border-radius: 12px;
+  padding: 32px 20px;
+  text-align: center;
+  cursor: pointer;
+  background: #f8faff;
+  transition: border-color 0.2s, background 0.2s;
+  outline: none;
+}
+
+.drop-zone:hover,
+.drop-zone:focus-visible {
+  border-color: #4f46e5;
+  background: #ede9fe;
+}
+
+.drop-zone.drag-active {
+  border-color: #4f46e5;
+  background: #ede9fe;
+}
+
+.drop-zone-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  pointer-events: none;
+}
+
+.drop-icon-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  background: #ede9fe;
+  border-radius: 50%;
+  margin-bottom: 8px;
+}
+
+.drop-icon {
+  font-size: 28px;
+  width: 28px;
+  height: 28px;
+  color: #4f46e5;
+}
+
+.drop-primary {
+  font-size: 15px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.drop-secondary {
+  font-size: 13px;
+  color: #64748b;
+}
+
+.drop-link {
+  color: #4f46e5;
+  font-weight: 600;
+}
+
+.drop-hint {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+/* ── File list ── */
+.file-list {
+  margin-top: 16px;
+}
+
+.file-list-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #16a34a;
+  margin-bottom: 8px;
+}
+
+.file-list-title mat-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+}
+
+.file-items {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.file-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+}
+
+.file-item-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  color: #4f46e5;
+  flex-shrink: 0;
+}
+
+.file-item-name {
+  flex: 1;
+  font-size: 13px;
+  color: #0f172a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.file-item-size {
+  font-size: 11px;
+  color: #94a3b8;
+  flex-shrink: 0;
+}
+
+/* ── Actions ── */
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 20px 20px;
+}
+
+.cancel-btn {
+  border-radius: 8px !important;
+  color: #64748b !important;
+}
+
+.upload-btn {
+  border-radius: 8px !important;
+  background: linear-gradient(135deg, #4f46e5, #06b6d4) !important;
+  color: #fff !important;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.upload-btn[disabled] {
+  opacity: 0.5;
+}
+
+/* ── Responsive ── */
+@media (max-width: 480px) {
+  .dialog-shell {
+    min-width: unset;
+  }
+}

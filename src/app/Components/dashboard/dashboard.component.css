@@ -1,24 +1,31 @@
+/* ── Dashboard shell ── */
 .dashboard-container {
   display: flex;
   flex-direction: column;
   height: 100vh;
   overflow: hidden;
+  background: #f0f2f5;
 }
 
-/* make sidenav container take full space under header */
+/* ── Sidenav container sits below the fixed header ── */
 .main-container {
   flex: 1;
-  margin-top: 64px;  
+  margin-top: 64px;
+  height: calc(100vh - 64px);
 }
 
-.sidebar {
-  width: 280px;
-  padding: 16px;
-  /* top: 64px;   */
+/* ── Sidebar panel ── */
+.sidebar-panel {
+  width: 260px;
+  background: #ffffff !important;
+  border-right: 1px solid #e2e8f0 !important;
+  box-shadow: none !important;
 }
 
+/* ── Main content area ── */
 .main-sidenav-content {
-  overflow: auto;
+  background: #f0f2f5;
+  overflow: hidden;
 }
 
 .main-content {
@@ -30,15 +37,17 @@
 .file-explorer-container {
   flex: 1;
   overflow-y: auto;
+  min-width: 0;
 }
 
-/* Mobile responsiveness */
+/* ── Mobile ── */
 @media (max-width: 768px) {
   .main-container {
-    margin-top: 56px; /* Smaller header height on mobile */
+    margin-top: 56px;
+    height: calc(100vh - 56px);
   }
-  
-  .sidebar {
-    top: 56px; /* Adjust for mobile header */
+
+  .sidebar-panel {
+    width: 240px;
   }
 }

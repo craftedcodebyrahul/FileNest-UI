@@ -1,18 +1,63 @@
-<mat-nav-list class="nav-list">
-  <!-- Home -->
-  <mat-list-item (click)="onFolderClick('')">
-    <mat-icon matListItemIcon>home</mat-icon>
-    <span matListItemTitle>Home</span>
-  </mat-list-item>
+<nav class="sidebar-nav">
 
-  <!-- Divider & Folders -->
-  <mat-divider></mat-divider>
-  <h3 matSubheader>Folders</h3>
+  <!-- Quick access -->
+  <div class="nav-section">
+    <span class="nav-section-label">Quick Access</span>
 
-  <mat-list-item 
-    *ngFor="let folder of folders"
-    (click)="onFolderClick(folder)">
-    <mat-icon matListItemIcon class="folder-icon">folder</mat-icon>
-    <span matListItemTitle>{{folder}}</span>
-  </mat-list-item>
-</mat-nav-list>
+    <a class="nav-item" (click)="onFolderClick('')" role="button" tabindex="0"
+       (keydown.enter)="onFolderClick('')">
+      <span class="nav-icon home-icon">
+        <mat-icon>home</mat-icon>
+      </span>
+      <span class="nav-label">Home</span>
+    </a>
+
+    <a class="nav-item" role="button" tabindex="0">
+      <span class="nav-icon recent-icon">
+        <mat-icon>schedule</mat-icon>
+      </span>
+      <span class="nav-label">Recent</span>
+    </a>
+
+    <a class="nav-item" role="button" tabindex="0">
+      <span class="nav-icon star-icon">
+        <mat-icon>star_border</mat-icon>
+      </span>
+      <span class="nav-label">Starred</span>
+    </a>
+
+    <a class="nav-item" role="button" tabindex="0">
+      <span class="nav-icon trash-icon">
+        <mat-icon>delete_outline</mat-icon>
+      </span>
+      <span class="nav-label">Trash</span>
+    </a>
+  </div>
+
+  <div class="nav-divider"></div>
+
+  <!-- Folders -->
+  <div class="nav-section">
+    <span class="nav-section-label">Folders</span>
+
+    <a class="nav-item folder-item"
+       *ngFor="let folder of folders"
+       (click)="onFolderClick(folder)"
+       role="button"
+       tabindex="0"
+       (keydown.enter)="onFolderClick(folder)">
+      <span class="nav-icon folder-icon">
+        <mat-icon>folder</mat-icon>
+      </span>
+      <span class="nav-label">{{ folder }}</span>
+    </a>
+
+    <p class="nav-empty" *ngIf="folders.length === 0">No folders yet</p>
+  </div>
+
+  <!-- Storage info at bottom -->
+  <div class="sidebar-footer">
+    <app-storage-info></app-storage-info>
+  </div>
+
+</nav>

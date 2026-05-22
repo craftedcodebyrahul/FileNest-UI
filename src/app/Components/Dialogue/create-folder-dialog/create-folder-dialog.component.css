@@ -1,0 +1,82 @@
+.dialog-shell {
+  min-width: 360px;
+  max-width: 100%;
+}
+
+.dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 20px 0;
+}
+
+.dialog-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dialog-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: linear-gradient(135deg, #4f46e5, #06b6d4);
+  border-radius: 8px;
+}
+
+.dialog-icon mat-icon {
+  color: #fff;
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+.dialog-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+.close-btn {
+  color: #94a3b8 !important;
+}
+
+.dialog-body {
+  padding: 16px 20px 8px !important;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 8px 20px 20px;
+}
+
+.cancel-btn {
+  border-radius: 8px !important;
+  color: #64748b !important;
+}
+
+.confirm-btn {
+  border-radius: 8px !important;
+  background: linear-gradient(135deg, #4f46e5, #06b6d4) !important;
+  color: #fff !important;
+  font-weight: 600;
+}
+
+.confirm-btn[disabled] {
+  opacity: 0.5;
+}
+
+@media (max-width: 480px) {
+  .dialog-shell {
+    min-width: unset;
+  }
+}

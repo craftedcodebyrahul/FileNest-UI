@@ -1,60 +1,217 @@
-/* Header styles */
-.header {
+/* ── Toolbar ── */
+.app-header {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  z-index: 1000; /* Increased z-index to ensure header stays on top */
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  z-index: 1000;
   height: 64px;
+  background: #ffffff !important;
+  border-bottom: 1px solid #e2e8f0;
+  box-shadow: 0 1px 4px rgba(0,0,0,.06);
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #0f172a !important;
 }
 
-.example-spacer {
+/* ── Menu button ── */
+.menu-btn {
+  color: #64748b !important;
+  flex-shrink: 0;
+}
+
+/* ── Brand ── */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.brand-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  background: linear-gradient(135deg, #4f46e5, #06b6d4);
+  border-radius: 8px;
+}
+
+.brand-icon mat-icon {
+  color: #fff;
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+.brand-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.3px;
+}
+
+/* ── Spacer ── */
+.spacer {
   flex: 1 1 auto;
 }
 
-/* User menu styles */
-.user-profile-menu {
-  min-width: 260px;
-  background-color: #fff !important;
+/* ── Search bar ── */
+.search-bar {
+  display: flex;
+  align-items: center;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
   border-radius: 10px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  padding: 8px 0;
+  padding: 0 14px;
+  height: 38px;
+  gap: 8px;
+  min-width: 220px;
+  max-width: 340px;
+  flex: 1;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-.user-info-container {
+.search-bar:focus-within {
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 3px rgba(79,70,229,.12);
+  background: #fff;
+}
+
+.search-icon {
+  color: #94a3b8;
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.search-input {
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 14px;
+  color: #0f172a;
+  width: 100%;
+  font-family: inherit;
+}
+
+.search-input::placeholder {
+  color: #94a3b8;
+}
+
+/* ── Icon buttons ── */
+.icon-btn {
+  color: #64748b !important;
+  flex-shrink: 0;
+}
+
+.icon-btn:hover {
+  background: #f1f5f9 !important;
+}
+
+/* ── Avatar button ── */
+.avatar-btn {
+  flex-shrink: 0;
+}
+
+.avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4f46e5, #06b6d4);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  letter-spacing: 0.5px;
+}
+
+/* ── User profile panel ── */
+::ng-deep .user-profile-panel {
+  min-width: 260px !important;
+  border-radius: 12px !important;
+  overflow: hidden;
+  box-shadow: 0 8px 30px rgba(0,0,0,.12) !important;
+}
+
+.menu-user-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   padding: 16px 20px;
-  text-align: left;
-  background-color: #424242; /* Primary color to match toolbar */
-  color: white;
+  background: linear-gradient(135deg, #4f46e5, #06b6d4);
+  cursor: default;
 }
 
-.user-info-container h3 {
-  margin: 0 0 10px 0;
-  font-size: 17px;
-  font-weight: 600;
+.menu-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.25);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
-.user-info-field {
+.menu-user-info {
   display: flex;
   flex-direction: column;
-  margin-bottom: 8px;
+  min-width: 0;
 }
 
-.user-info-field label {
+.menu-user-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.menu-user-email {
   font-size: 12px;
-  opacity: 0.9;
-  margin-bottom: 2px;
+  color: rgba(255,255,255,.8);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.user-info-field span {
-  font-size: 14px;
-  font-weight: 500;
+.menu-item-detail {
+  color: #64748b !important;
+  font-size: 13px !important;
 }
 
-/* Mobile responsiveness */
+.menu-item-logout {
+  color: #ef4444 !important;
+}
+
+.menu-item-logout mat-icon {
+  color: #ef4444 !important;
+}
+
+/* ── Responsive ── */
 @media (max-width: 768px) {
-  .header {
+  .app-header {
     height: 56px;
+    padding: 0 8px;
+  }
+
+  .search-bar {
+    display: none;
+  }
+
+  .brand-name {
+    font-size: 16px;
   }
 }
