@@ -16,31 +16,51 @@ import { CommonModule } from '@angular/common';
       </div>
       <mat-divider></mat-divider>
       <mat-nav-list class="sheet-list">
-        <mat-list-item (click)="dismiss('open')">
-          <mat-icon matListItemIcon>{{ data.type === 'folder' ? 'folder_open' : 'visibility' }}</mat-icon>
-          <span matListItemTitle>{{ data.type === 'folder' ? 'Open' : 'Preview' }}</span>
-        </mat-list-item>
-        <mat-list-item (click)="dismiss('rename')">
-          <mat-icon matListItemIcon>drive_file_rename_outline</mat-icon>
-          <span matListItemTitle>Rename</span>
-        </mat-list-item>
-        <mat-list-item (click)="dismiss('cut')">
-          <mat-icon matListItemIcon>content_cut</mat-icon>
-          <span matListItemTitle>Cut (Move)</span>
-        </mat-list-item>
-        <mat-list-item *ngIf="data.hasClipboard" (click)="dismiss('paste')">
-          <mat-icon matListItemIcon>content_paste</mat-icon>
-          <span matListItemTitle>Paste here</span>
-        </mat-list-item>
-        <mat-list-item *ngIf="data.type === 'file'" (click)="dismiss('download')">
-          <mat-icon matListItemIcon>download</mat-icon>
-          <span matListItemTitle>Download</span>
-        </mat-list-item>
-        <mat-divider></mat-divider>
-        <mat-list-item class="delete-item" (click)="dismiss('delete')">
-          <mat-icon matListItemIcon class="delete-icon">delete_outline</mat-icon>
-          <span matListItemTitle class="delete-label">Delete</span>
-        </mat-list-item>
+        <!-- Normal Actions -->
+        <ng-container *ngIf="!data.isTrash">
+          <mat-list-item (click)="dismiss('open')">
+            <mat-icon matListItemIcon>{{ data.type === 'folder' ? 'folder_open' : 'visibility' }}</mat-icon>
+            <span matListItemTitle>{{ data.type === 'folder' ? 'Open' : 'Preview' }}</span>
+          </mat-list-item>
+          <mat-list-item (click)="dismiss('star')">
+            <mat-icon matListItemIcon>{{ data.isStarred ? 'star' : 'star_border' }}</mat-icon>
+            <span matListItemTitle>{{ data.isStarred ? 'Unstar' : 'Star' }}</span>
+          </mat-list-item>
+          <mat-list-item (click)="dismiss('rename')">
+            <mat-icon matListItemIcon>drive_file_rename_outline</mat-icon>
+            <span matListItemTitle>Rename</span>
+          </mat-list-item>
+          <mat-list-item (click)="dismiss('cut')">
+            <mat-icon matListItemIcon>content_cut</mat-icon>
+            <span matListItemTitle>Cut (Move)</span>
+          </mat-list-item>
+          <mat-list-item *ngIf="data.hasClipboard" (click)="dismiss('paste')">
+            <mat-icon matListItemIcon>content_paste</mat-icon>
+            <span matListItemTitle>Paste here</span>
+          </mat-list-item>
+          <mat-list-item *ngIf="data.type === 'file'" (click)="dismiss('download')">
+            <mat-icon matListItemIcon>download</mat-icon>
+            <span matListItemTitle>Download</span>
+          </mat-list-item>
+          <mat-divider></mat-divider>
+          <mat-list-item class="delete-item" (click)="dismiss('delete')">
+            <mat-icon matListItemIcon class="delete-icon">delete_outline</mat-icon>
+            <span matListItemTitle class="delete-label">Delete</span>
+          </mat-list-item>
+        </ng-container>
+
+        <!-- Trash Actions -->
+        <ng-container *ngIf="data.isTrash">
+          <mat-list-item (click)="dismiss('restore')">
+            <mat-icon matListItemIcon>restore</mat-icon>
+            <span matListItemTitle>Restore</span>
+          </mat-list-item>
+          <mat-divider></mat-divider>
+          <mat-list-item class="delete-item" (click)="dismiss('delete')">
+            <mat-icon matListItemIcon class="delete-icon">delete_forever</mat-icon>
+            <span matListItemTitle class="delete-label">Delete Permanently</span>
+          </mat-list-item>
+        </ng-container>
       </mat-nav-list>
     </div>
   `,
@@ -71,6 +91,8 @@ export class MobileActionsSheetComponent {
       type: 'file' | 'folder';
       name: string;
       hasClipboard: boolean;
+      isTrash: boolean;
+      isStarred: boolean;
     }
   ) {}
 

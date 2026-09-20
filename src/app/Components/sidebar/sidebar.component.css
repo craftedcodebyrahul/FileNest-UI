@@ -1,45 +1,45 @@
-/* ── Sidebar nav wrapper ── */
 .sidebar-nav {
   display: flex;
   flex-direction: column;
   height: 100%;
-  padding: 16px 12px;
+  padding: 16px 14px;
   overflow-y: auto;
   overflow-x: hidden;
   background: #ffffff;
+  border-right: 1px solid var(--surface-border);
 }
 
 /* ── Section ── */
 .nav-section {
-  margin-bottom: 8px;
+  margin-bottom: 12px;
 }
 
 .nav-section-label {
   display: block;
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.8px;
+  letter-spacing: 0.08em;
   color: #94a3b8;
-  padding: 0 12px;
-  margin-bottom: 4px;
+  padding: 0 10px;
+  margin-bottom: 8px;
 }
 
 /* ── Nav item ── */
 .nav-item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 9px 12px;
-  border-radius: 8px;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
   cursor: pointer;
   text-decoration: none;
   color: #475569;
   font-size: 14px;
-  font-weight: 500;
-  transition: background 0.15s, color 0.15s;
+  font-weight: 600;
+  transition: var(--transition);
   user-select: none;
-  margin-bottom: 2px;
+  margin-bottom: 3px;
 }
 
 .nav-item:hover {
@@ -47,9 +47,10 @@
   color: #0f172a;
 }
 
-.nav-item:focus-visible {
-  outline: 2px solid #4f46e5;
-  outline-offset: 1px;
+.nav-item.active {
+  background: var(--primary-subtle);
+  color: var(--primary);
+  font-weight: 700;
 }
 
 /* ── Nav icons ── */
@@ -59,8 +60,9 @@
   justify-content: center;
   width: 32px;
   height: 32px;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   flex-shrink: 0;
+  transition: var(--transition);
 }
 
 .nav-icon mat-icon {
@@ -69,11 +71,18 @@
   height: 18px;
 }
 
-.home-icon   { background: #ede9fe; color: #7c3aed; }
-.recent-icon { background: #e0f2fe; color: #0284c7; }
-.star-icon   { background: #fef9c3; color: #ca8a04; }
-.trash-icon  { background: #fee2e2; color: #dc2626; }
-.folder-icon { background: #fff7ed; color: #f59e0b; }
+.home-icon   { background: #eef2ff; color: #6366f1; }
+.recent-icon { background: #e0f2fe; color: #0ea5e9; }
+.star-icon   { background: #fef3c7; color: #d97706; }
+.trash-icon  { background: #fee2e2; color: #ef4444; }
+.folder-icon { background: #ffedd5; color: #ea580c; }
+.file-icon   { background: #f1f5f9; color: #64748b; }
+
+.file-tree-spacer {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+}
 
 .nav-label {
   flex: 1;
@@ -82,11 +91,12 @@
   text-overflow: ellipsis;
 }
 
+
 /* ── Divider ── */
 .nav-divider {
   height: 1px;
-  background: #f1f5f9;
-  margin: 8px 0 12px;
+  background: var(--surface-border);
+  margin: 12px 0 16px;
 }
 
 /* ── Empty state ── */
@@ -103,9 +113,68 @@
   padding-top: 16px;
 }
 
-/* ── Mobile ── */
+/* ── Folder Tree Layout ── */
+.tree-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.tree-node-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.folder-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px !important;
+  padding-top: 6px !important;
+  padding-bottom: 6px !important;
+}
+
+.expand-toggle-btn {
+  width: 24px !important;
+  height: 24px !important;
+  min-width: 24px !important;
+  line-height: 24px !important;
+  padding: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: #64748b !important;
+}
+
+.expand-toggle-btn:hover {
+  background-color: #f1f5f9 !important;
+}
+
+.expand-toggle-btn .toggle-icon {
+  font-size: 18px !important;
+  width: 18px !important;
+  height: 18px !important;
+}
+
+.node-spinner {
+  width: 16px !important;
+  height: 16px !important;
+}
+
+.tree-children {
+  display: flex;
+  flex-direction: column;
+}
+
+.tree-children-empty {
+  font-size: 12px;
+  color: #94a3b8;
+  padding: 4px 0;
+  font-style: italic;
+}
+
 @media (max-width: 768px) {
   .sidebar-nav {
     padding: 12px 8px;
   }
 }
+

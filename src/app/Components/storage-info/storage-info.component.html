@@ -1,15 +1,17 @@
 <div class="storage-card">
   <div class="storage-header">
-    <mat-icon class="storage-icon">storage</mat-icon>
-    <span class="storage-title">Storage</span>
+    <div class="header-left">
+      <mat-icon class="storage-icon">cloud_queue</mat-icon>
+      <span class="storage-title">Storage</span>
+    </div>
+    <span class="percent-badge">{{ progressValue }}%</span>
   </div>
 
-  <mat-progress-bar class="storage-bar" mode="determinate" value="65" color="primary"></mat-progress-bar>
+  <mat-progress-bar class="storage-bar" mode="determinate" [value]="progressValue"></mat-progress-bar>
 
   <div class="storage-stats">
-    <span class="used">9.8 GB used</span>
-    <span class="total">15 GB</span>
+    <span class="used">{{ formattedUsed }} used</span>
+    <span class="total">of {{ formattedLimit }}</span>
   </div>
-
-  <p class="storage-sub">5.2 GB free remaining</p>
 </div>
+

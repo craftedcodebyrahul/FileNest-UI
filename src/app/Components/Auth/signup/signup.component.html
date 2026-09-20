@@ -1,74 +1,87 @@
-<div class="auth-bg">
-  <div class="auth-card">
+<div class="auth-wrapper">
+  <!-- Glowing ambient background blobs -->
+  <div class="ambient-glow glow-1"></div>
+  <div class="ambient-glow glow-2"></div>
 
-    <!-- Brand -->
-    <div class="brand">
-      <div class="brand-icon">
-        <mat-icon>folder_special</mat-icon>
+  <div class="auth-card glass-card">
+
+    <!-- Brand Header -->
+    <div class="brand-header">
+      <div class="brand-badge">
+        <mat-icon>person_add_alt_1</mat-icon>
       </div>
-      <h1 class="brand-name">Create Account</h1>
-      <p class="brand-tagline">Join FileNest and manage your files</p>
+      <h1 class="brand-title">Create Account</h1>
+      <p class="brand-subtitle">Join FileNest and get 15GB free cloud storage</p>
     </div>
 
     <!-- Form -->
     <form [formGroup]="form" (ngSubmit)="onSignup()" class="auth-form" novalidate>
 
-      <div class="name-row">
-        <mat-form-field appearance="outline" class="half-width">
-          <mat-label>First name</mat-label>
-          <input matInput formControlName="first_name" placeholder="John" autocomplete="given-name" />
-          <mat-error *ngIf="form.get('first_name')?.hasError('required')">Required</mat-error>
-        </mat-form-field>
+      <div class="name-grid">
+        <div class="input-field">
+          <label for="first_name">First Name</label>
+          <div class="input-box">
+            <input id="first_name" type="text" formControlName="first_name" placeholder="John" autocomplete="given-name" />
+          </div>
+          <div class="field-error" *ngIf="form.get('first_name')?.touched && form.get('first_name')?.hasError('required')">Required</div>
+        </div>
 
-        <mat-form-field appearance="outline" class="half-width">
-          <mat-label>Last name</mat-label>
-          <input matInput formControlName="last_name" placeholder="Doe" autocomplete="family-name" />
-          <mat-error *ngIf="form.get('last_name')?.hasError('required')">Required</mat-error>
-        </mat-form-field>
+        <div class="input-field">
+          <label for="last_name">Last Name</label>
+          <div class="input-box">
+            <input id="last_name" type="text" formControlName="last_name" placeholder="Doe" autocomplete="family-name" />
+          </div>
+          <div class="field-error" *ngIf="form.get('last_name')?.touched && form.get('last_name')?.hasError('required')">Required</div>
+        </div>
       </div>
 
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Phone number</mat-label>
-        <mat-icon matPrefix>phone</mat-icon>
-        <input matInput formControlName="phone_number" placeholder="+1 555 000 0000" autocomplete="tel" />
-        <mat-error *ngIf="form.get('phone_number')?.hasError('required')">Phone is required</mat-error>
-      </mat-form-field>
+      <div class="input-field">
+        <label for="email">Email Address</label>
+        <div class="input-box">
+          <mat-icon class="field-icon">mail_outline</mat-icon>
+          <input id="email" type="email" formControlName="email" placeholder="name@company.com" autocomplete="email" />
+        </div>
+        <div class="field-error" *ngIf="form.get('email')?.touched && form.get('email')?.hasError('required')">Email is required</div>
+        <div class="field-error" *ngIf="form.get('email')?.touched && form.get('email')?.hasError('email')">Valid email required</div>
+      </div>
 
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Email address</mat-label>
-        <mat-icon matPrefix>email</mat-icon>
-        <input matInput type="email" formControlName="email" placeholder="you@example.com" autocomplete="email" />
-        <mat-error *ngIf="form.get('email')?.hasError('required')">Email is required</mat-error>
-        <mat-error *ngIf="form.get('email')?.hasError('email')">Enter a valid email</mat-error>
-      </mat-form-field>
+      <div class="input-field">
+        <label for="phone_number">Phone Number</label>
+        <div class="input-box">
+          <mat-icon class="field-icon">phone_iphone</mat-icon>
+          <input id="phone_number" type="tel" formControlName="phone_number" placeholder="+1 (555) 000-0000" autocomplete="tel" />
+        </div>
+        <div class="field-error" *ngIf="form.get('phone_number')?.touched && form.get('phone_number')?.hasError('required')">Phone is required</div>
+      </div>
 
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Password</mat-label>
-        <mat-icon matPrefix>lock</mat-icon>
-        <input matInput [type]="hidePassword ? 'password' : 'text'" formControlName="password"
-               placeholder="Min. 8 characters" autocomplete="new-password" />
-        <button mat-icon-button matSuffix type="button" (click)="hidePassword = !hidePassword"
-                [attr.aria-label]="hidePassword ? 'Show password' : 'Hide password'">
-          <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
-        </button>
-        <mat-error *ngIf="form.get('password')?.hasError('required')">Password is required</mat-error>
-        <mat-error *ngIf="form.get('password')?.hasError('minlength')">Minimum 8 characters</mat-error>
-      </mat-form-field>
+      <div class="input-field">
+        <label for="password">Password</label>
+        <div class="input-box">
+          <mat-icon class="field-icon">lock_open</mat-icon>
+          <input id="password" [type]="hidePassword ? 'password' : 'text'" formControlName="password"
+            placeholder="Min. 8 characters" autocomplete="new-password" />
+          <button type="button" class="icon-btn" (click)="hidePassword = !hidePassword" tabindex="-1">
+            <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+          </button>
+        </div>
+        <div class="field-error" *ngIf="form.get('password')?.touched && form.get('password')?.hasError('required')">Password is required</div>
+        <div class="field-error" *ngIf="form.get('password')?.touched && form.get('password')?.hasError('minlength')">Minimum 8 characters</div>
+      </div>
 
       <button mat-flat-button class="submit-btn" type="submit" [disabled]="form.invalid || isLoading">
         <mat-spinner *ngIf="isLoading" diameter="20" class="btn-spinner"></mat-spinner>
         <ng-container *ngIf="!isLoading">
-          Create account
+          <span>Create Account</span>
           <mat-icon>arrow_forward</mat-icon>
         </ng-container>
       </button>
 
     </form>
 
-    <p class="switch-auth">
-      Already have an account?
-      <a routerLink="/login">Sign in</a>
-    </p>
+    <div class="auth-footer">
+      <span>Already have an account?</span>
+      <a routerLink="/login" class="login-link">Sign In</a>
+    </div>
 
   </div>
-</div>
+</div>

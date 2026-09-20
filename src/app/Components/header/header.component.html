@@ -1,62 +1,72 @@
 <mat-toolbar class="app-header">
 
-  <!-- Sidebar toggle -->
-  <button mat-icon-button class="menu-btn" (click)="toggleSidebar.emit()" aria-label="Toggle sidebar">
-    <mat-icon>menu</mat-icon>
-  </button>
+  <!-- Left Section: Menu Toggle & Brand -->
+  <div class="header-left">
+    <button mat-icon-button class="menu-btn" (click)="toggleSidebar.emit()" aria-label="Toggle Navigation">
+      <mat-icon>menu</mat-icon>
+    </button>
 
-  <!-- Brand -->
-  <div class="brand">
-    <div class="brand-icon">
-      <mat-icon>folder_special</mat-icon>
-    </div>
-    <span class="brand-name">FileNest</span>
-  </div>
-
-  <!-- Spacer -->
-  <span class="spacer"></span>
-
-  <!-- Search bar (hidden on small screens) -->
-  <div class="search-bar">
-    <mat-icon class="search-icon">search</mat-icon>
-    <input class="search-input" type="text" placeholder="Search files…" aria-label="Search files" />
-  </div>
-
-  <span class="spacer"></span>
-
-  <!-- Notifications -->
-  <button mat-icon-button class="icon-btn" aria-label="Notifications" matTooltip="Notifications">
-    <mat-icon>notifications_none</mat-icon>
-  </button>
-
-  <!-- Avatar / User menu -->
-  <button mat-icon-button class="avatar-btn" [matMenuTriggerFor]="userMenu" aria-label="User account menu">
-    <div class="avatar">{{ userInitials }}</div>
-  </button>
-
-  <!-- User profile menu -->
-  <mat-menu #userMenu="matMenu" panelClass="user-profile-panel" [hasBackdrop]="true">
-    <div class="menu-user-header" (click)="$event.stopPropagation()">
-      <div class="menu-avatar">{{ userInitials }}</div>
-      <div class="menu-user-info">
-        <span class="menu-user-name">{{ user?.first_name }} {{ user?.last_name }}</span>
-        <span class="menu-user-email">{{ user?.email }}</span>
+    <div class="brand">
+      <div class="brand-badge">
+        <mat-icon>cloud_sync</mat-icon>
       </div>
+      <span class="brand-name">FileNest</span>
+    </div>
+  </div>
+
+  <!-- Center Section: Search Bar -->
+  <div class="header-center">
+    <div class="search-box">
+      <mat-icon class="search-icon">search</mat-icon>
+      <input class="search-input" type="text" placeholder="Search files, folders & documents..." aria-label="Search files" (input)="onSearch($event)" />
+    </div>
+  </div>
+
+  <!-- Right Section: Actions & User Dropdown -->
+  <div class="header-right">
+    <button mat-icon-button class="icon-btn" aria-label="Notifications" matTooltip="Notifications">
+      <mat-icon>notifications_none</mat-icon>
+    </button>
+
+    <!-- User Profile Trigger Button -->
+    <div class="user-trigger-btn" [matMenuTriggerFor]="userMenu" role="button" tabindex="0" aria-label="User Account Menu">
+      <div class="avatar-ring">
+        <img *ngIf="userAvatarUrl" [src]="userAvatarUrl" alt="User Profile" class="avatar-img" />
+        <div *ngIf="!userAvatarUrl" class="avatar-text">{{ userInitials }}</div>
+      </div>
+      <span class="user-name-label">{{ userDisplayName }}</span>
+      <mat-icon class="dropdown-icon">expand_more</mat-icon>
     </div>
 
-    <mat-divider></mat-divider>
 
-    <button mat-menu-item class="menu-item-detail" (click)="$event.stopPropagation()">
-      <mat-icon>phone</mat-icon>
-      <span>{{ user?.phone_number || 'No phone' }}</span>
-    </button>
+    <!-- User Profile Dropdown Menu -->
+    <mat-menu #userMenu="matMenu" panelClass="user-profile-menu" [hasBackdrop]="true" xPosition="before">
+      <div class="menu-header-card" (click)="$event.stopPropagation()">
+        <div class="header-avatar-lg">
+          <img *ngIf="userAvatarUrl" [src]="userAvatarUrl" alt="Avatar" class="avatar-img-lg" />
+          <div *ngIf="!userAvatarUrl" class="avatar-initials-lg">{{ userInitials }}</div>
+        </div>
+        <div class="header-details">
+          <span class="header-user-name">{{ userDisplayName }}</span>
+          <span class="header-user-email">{{ user?.email || 'authenticated' }}</span>
+        </div>
+      </div>
 
-    <mat-divider></mat-divider>
+      <mat-divider></mat-divider>
 
-    <button mat-menu-item class="menu-item-logout" (click)="logout()">
-      <mat-icon>logout</mat-icon>
-      <span>Sign out</span>
-    </button>
-  </mat-menu>
+      <button mat-menu-item (click)="openChangePasswordDialog()">
+        <mat-icon class="menu-icon">lock_reset</mat-icon>
+        <span>Change Password</span>
+      </button>
+
+      <mat-divider></mat-divider>
+
+      <button mat-menu-item class="logout-item" (click)="logout()">
+        <mat-icon class="menu-icon danger-icon">logout</mat-icon>
+        <span>Sign Out</span>
+      </button>
+    </mat-menu>
+  </div>
 
 </mat-toolbar>
+

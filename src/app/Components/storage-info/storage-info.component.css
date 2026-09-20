@@ -3,40 +3,54 @@
 }
 
 .storage-card {
-  background: linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%);
-  border-radius: 12px;
+  background: var(--gradient-brand);
+  border-radius: var(--radius-md);
   padding: 16px;
-  color: #fff;
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.25);
 }
 
 .storage-header {
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: space-between;
   margin-bottom: 12px;
 }
 
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .storage-icon {
-  font-size: 18px;
-  width: 18px;
-  height: 18px;
-  opacity: 0.9;
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
 }
 
 .storage-title {
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.percent-badge {
+  font-size: 11px;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.25);
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
 }
 
 .storage-bar {
-  border-radius: 99px;
+  border-radius: var(--radius-pill);
   height: 6px;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
-/* Override Material progress bar colours inside gradient card */
 ::ng-deep .storage-card .mat-mdc-progress-bar .mdc-linear-progress__buffer-bar {
-  background: rgba(255,255,255,.3) !important;
+  background: rgba(255, 255, 255, 0.3) !important;
 }
 
 ::ng-deep .storage-card .mat-mdc-progress-bar .mdc-linear-progress__primary-bar {
@@ -48,10 +62,6 @@
   justify-content: space-between;
   font-size: 12px;
   font-weight: 600;
-  margin-bottom: 2px;
+  opacity: 0.95;
 }
 
-.storage-sub {
-  font-size: 11px;
-  opacity: 0.75;
-}

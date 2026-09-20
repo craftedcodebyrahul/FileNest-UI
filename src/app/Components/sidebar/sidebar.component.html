@@ -4,29 +4,48 @@
   <div class="nav-section">
     <span class="nav-section-label">Quick Access</span>
 
-    <a class="nav-item" (click)="onFolderClick('')" role="button" tabindex="0"
-       (keydown.enter)="onFolderClick('')">
+    <a class="nav-item" 
+       [class.active]="currentView === 'home' && currentFolder === ''"
+       (click)="onHomeClick()" 
+       role="button" 
+       tabindex="0"
+       (keydown.enter)="onHomeClick()">
       <span class="nav-icon home-icon">
         <mat-icon>home</mat-icon>
       </span>
       <span class="nav-label">Home</span>
     </a>
 
-    <a class="nav-item" role="button" tabindex="0">
+    <a class="nav-item" 
+       [class.active]="currentView === 'recent'"
+       (click)="onRecentClick()" 
+       role="button" 
+       tabindex="0"
+       (keydown.enter)="onRecentClick()">
       <span class="nav-icon recent-icon">
         <mat-icon>schedule</mat-icon>
       </span>
       <span class="nav-label">Recent</span>
     </a>
 
-    <a class="nav-item" role="button" tabindex="0">
+    <a class="nav-item" 
+       [class.active]="currentView === 'starred'"
+       (click)="onStarredClick()" 
+       role="button" 
+       tabindex="0"
+       (keydown.enter)="onStarredClick()">
       <span class="nav-icon star-icon">
         <mat-icon>star_border</mat-icon>
       </span>
       <span class="nav-label">Starred</span>
     </a>
 
-    <a class="nav-item" role="button" tabindex="0">
+    <a class="nav-item" 
+       [class.active]="currentView === 'trash'"
+       (click)="onTrashClick()" 
+       role="button" 
+       tabindex="0"
+       (keydown.enter)="onTrashClick()">
       <span class="nav-icon trash-icon">
         <mat-icon>delete_outline</mat-icon>
       </span>
@@ -36,23 +55,15 @@
 
   <div class="nav-divider"></div>
 
-  <!-- Folders -->
+  <!-- Folders & Files Tree -->
   <div class="nav-section">
-    <span class="nav-section-label">Folders</span>
+    <span class="nav-section-label">My Nest</span>
 
-    <a class="nav-item folder-item"
-       *ngFor="let folder of folders"
-       (click)="onFolderClick(folder)"
-       role="button"
-       tabindex="0"
-       (keydown.enter)="onFolderClick(folder)">
-      <span class="nav-icon folder-icon">
-        <mat-icon>folder</mat-icon>
-      </span>
-      <span class="nav-label">{{ folder }}</span>
-    </a>
+    <div class="tree-container">
+      <ng-container *ngTemplateOutlet="folderTreeTemplate; context: { $implicit: treeNodes }"></ng-container>
+    </div>
 
-    <p class="nav-empty" *ngIf="folders.length === 0">No folders yet</p>
+    <p class="nav-empty" *ngIf="treeNodes.length === 0">No folders yet</p>
   </div>
 
   <!-- Storage info at bottom -->
@@ -61,3 +72,46 @@
   </div>
 
 </nav>
+
+<ng-template #folderTreeTemplate let-nodes>
+  <div class="tree-node-wrapper" *ngFor="let node of nodes">
+    <div class="nav-item folder-item"
+         [class.active]="currentView === 'home' && currentFolder === node.fullPath"
+         [style.padding-left.px]="8 + node.level * 14"
+         (click)="onNodeClick(node)"
+         role="button"
+         tabindex="0"
+         (keydown.enter)="onNodeClick(node)">
+      
+      <!-- Expand/Collapse toggle button for folders -->
+      <button *ngIf="node.isFolder" mat-icon-button class="expand-toggle-btn"
+              (click)="toggleNode($event, node)"
+              [disabled]="node.isLoading"
+              type="button"
+              tabindex="-1">
+        <mat-icon *ngIf="!node.isLoading" class="toggle-icon">
+          {{ node.isExpanded ? 'keyboard_arrow_down' : 'keyboard_arrow_right' }}
+        </mat-icon>
+        <mat-spinner *ngIf="node.isLoading" diameter="14" class="node-spinner"></mat-spinner>
+      </button>
+
+      <!-- Spacer placeholder for non-folder files so they align neatly -->
+      <span *ngIf="!node.isFolder" class="file-tree-spacer"></span>
+
+      <!-- Icon -->
+      <span class="nav-icon" [ngClass]="node.isFolder ? 'folder-icon' : 'file-icon'">
+        <mat-icon>{{ node.isFolder ? 'folder' : getFileIcon(node.name) }}</mat-icon>
+      </span>
+      <span class="nav-label" [title]="node.name">{{ node.name }}</span>
+    </div>
+
+    <!-- Recursive children rendering -->
+    <div class="tree-children" *ngIf="node.isFolder && node.isExpanded && node.children.length > 0">
+      <ng-container *ngTemplateOutlet="folderTreeTemplate; context: { $implicit: node.children }"></ng-container>
+    </div>
+    <div class="tree-children-empty" *ngIf="node.isFolder && node.isExpanded && node.children.length === 0 && !node.isLoading" [style.padding-left.px]="36 + node.level * 14">
+      Empty folder
+    </div>
+  </div>
+</ng-template>
+

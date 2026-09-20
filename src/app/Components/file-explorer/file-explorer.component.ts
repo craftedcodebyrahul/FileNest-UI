@@ -1,6 +1,7 @@
 import {
-  Component, OnDestroy, OnInit, ViewChild, NgZone
+  Component, OnDestroy, OnInit, ViewChild, NgZone, inject, PLATFORM_ID
 } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { APP_MODULES } from '../../app.module';
 import { MATERIAL_IMPORTS } from '../../material/material.module';
 import { CreateFolderDialogComponent } from '../Dialogue/create-folder-dialog/create-folder-dialog.component';
@@ -26,6 +27,8 @@ import { MobileActionsSheetComponent } from '../Dialogue/mobile-actions-sheet/mo
   styleUrl: './file-explorer.component.css',
 })
 export class FileExplorerComponent implements OnInit, OnDestroy {
+  private platformId = inject(PLATFORM_ID);
+
   constructor(
     public dialog: MatDialog,
     private fileService: FileserviceService,
@@ -36,10 +39,18 @@ export class FileExplorerComponent implements OnInit, OnDestroy {
 
   current_directories: any = [];
   current_files: any = [];
+  displayed_directories: any = [];
+  displayed_files: any = [];
   breadcrumb_paths: string[] = [];
-  current_path = '';
+  currentView: 'home' | 'recent' | 'starred' | 'trash' = 'home';
+  searchQuery = '';
+
   private rootFoldersSubscription: Subscription | undefined;
   private currentFolderSubscription: Subscription | undefined;
+  private viewSubscription: Subscription | undefined;
+  private searchSubscription: Subscription | undefined;
+  private configSubscription: Subscription | undefined;
+
   contextMenuTargetType: 'file' | 'folder' | null = null;
   clicked_active_path: string = '';
   clicked_active_item: any = null;
@@ -57,40 +68,77 @@ export class FileExplorerComponent implements OnInit, OnDestroy {
   private longPressDuration = 600; // ms
 
   get isMobile(): boolean {
-    return window.innerWidth < 768;
+    if (isPlatformBrowser(this.platformId)) {
+      return window.innerWidth < 768;
+    }
+    return false;
   }
 
   contextMenuPosition = { x: '0px', y: '0px' };
 
+
   ngOnInit(): void {
+    this.fileService.loadConfig();
     this.restoreNavigationState();
 
-    this.rootFoldersSubscription = this.fileService.rootFolders$.subscribe(
-      (folders) => {}
-    );
-    this.currentFolderSubscription = this.fileService.currentFolder$.subscribe(
-      (folder) => {
+    this.rootFoldersSubscription = this.fileService.rootFolders$.subscribe(() => {});
+
+    this.viewSubscription = this.fileService.currentView$.subscribe((view) => {
+      this.currentView = view;
+      if (view === 'recent' || view === 'starred') {
+        this.breadcrumb_paths = [];
+      }
+      this.get_all_dir_files(this.breadcrumbFullPath);
+    });
+
+    this.searchSubscription = this.fileService.searchQuery$.subscribe((query) => {
+      this.searchQuery = query;
+      this.filterItems(query);
+    });
+
+    this.configSubscription = this.fileService.config$.subscribe(() => {
+      if (this.currentView === 'recent' || this.currentView === 'starred') {
+        this.get_all_dir_files(this.breadcrumbFullPath);
+      }
+    });
+
+    this.currentFolderSubscription = this.fileService.currentFolder$.subscribe((folder) => {
+      if (this.currentView === 'home') {
         if (folder === '') {
           this.breadcrumb_paths = [];
-          this.get_all_dir_files('');
         } else {
-          this.breadcrumb_paths = [folder];
-          this.get_all_dir_files(folder);
+          this.breadcrumb_paths = folder.split('/').filter(s => s !== '');
         }
+        this.get_all_dir_files(this.breadcrumbFullPath);
       }
-    );
+    });
   }
 
   ngAfterViewInit(): void {
-    if (this.breadcrumb_paths.length === 0) {
+    if (this.currentView === 'home' && this.breadcrumb_paths.length === 0) {
       this.get_all_dir_files('');
+    }
+  }
+
+  filterItems(query: string): void {
+    const q = query.toLowerCase().trim();
+    if (!q) {
+      this.displayed_directories = this.current_directories;
+      this.displayed_files = this.current_files;
+    } else {
+      this.displayed_directories = this.current_directories.filter((d: any) => {
+        const name = typeof d === 'string' ? d : d.name;
+        return name.toLowerCase().includes(q);
+      });
+      this.displayed_files = this.current_files.filter((f: any) => {
+        return f.name.toLowerCase().includes(q);
+      });
     }
   }
 
   // ── Card click (single tap on mobile = open, desktop = select) ──────────
 
   onCardClick(event: MouseEvent, item: any, type: 'file' | 'folder'): void {
-    // On touch devices a single tap should open; on desktop dblclick handles it
     if (this.isMobile) {
       if (type === 'folder') this.OnClickDir(item);
       else this.onFileClick(item);
@@ -115,7 +163,6 @@ export class FileExplorerComponent implements OnInit, OnDestroy {
   }
 
   onTouchMove(): void {
-    // Cancel long press if user scrolls
     if (this.longPressTimer) {
       clearTimeout(this.longPressTimer);
       this.longPressTimer = null;
@@ -124,18 +171,20 @@ export class FileExplorerComponent implements OnInit, OnDestroy {
 
   openMobileActions(item: any, type: 'file' | 'folder'): void {
     this.contextMenuTargetType = type;
-    if (type === 'file') {
-      this.clicked_active_path = item.name;
-    } else {
-      this.clicked_active_path = item;
-    }
+    this.clicked_active_path = type === 'file' ? item.name : (typeof item === 'string' ? item : item.name);
     this.clicked_active_item = item;
+
+    const fullPath = type === 'file' 
+      ? item.fullPath 
+      : (this.breadcrumbFullPath ? this.breadcrumbFullPath + '/' + this.clicked_active_path : this.clicked_active_path);
 
     const ref = this.bottomSheet.open(MobileActionsSheetComponent, {
       data: {
         type,
-        name: type === 'file' ? item.name : item,
+        name: this.clicked_active_path,
         hasClipboard: !!this.clipboard,
+        isTrash: this.currentView === 'trash',
+        isStarred: this.fileService.isStarred(fullPath, type)
       },
     });
 
@@ -145,6 +194,12 @@ export class FileExplorerComponent implements OnInit, OnDestroy {
         case 'open':
           if (type === 'folder') this.OnClickDir(item);
           else this.onFileClick(item);
+          break;
+        case 'star':
+          this.toggleStar(item, type);
+          break;
+        case 'restore':
+          this.onRestore(item, type);
           break;
         case 'rename': this.onRename(); break;
         case 'cut': this.onCut(); break;
@@ -162,15 +217,40 @@ export class FileExplorerComponent implements OnInit, OnDestroy {
     this.contextMenuPosition.x = event.clientX + 'px';
     this.contextMenuPosition.y = event.clientY + 'px';
     this.contextMenuTargetType = type;
-    if (type === 'file') {
-      this.clicked_active_path = item.name;
-    } else {
-      this.clicked_active_path = item;
-    }
+    this.clicked_active_path = type === 'file' ? item.name : (typeof item === 'string' ? item : item.name);
     this.clicked_active_item = item;
     this.contextMenu.menuData = { item, type };
     this.contextMenu.menu!.focusFirstItem('mouse');
     this.contextMenu.openMenu();
+  }
+
+  // ── Star / Unstar ────────────────────────────────────────────────────────
+
+  isStarred(item: any, type: 'file' | 'folder'): boolean {
+    const name = type === 'file' ? item.name : (typeof item === 'string' ? item : item.name);
+    const fullPath = type === 'file' 
+      ? item.fullPath 
+      : (this.breadcrumbFullPath ? this.breadcrumbFullPath + '/' + name : name);
+    return this.fileService.isStarred(fullPath, type);
+  }
+
+  toggleStar(item: any, type: 'file' | 'folder'): void {
+    const name = type === 'file' ? item.name : (typeof item === 'string' ? item : item.name);
+    const fullPath = type === 'file' 
+      ? item.fullPath 
+      : (this.breadcrumbFullPath ? this.breadcrumbFullPath + '/' + name : name);
+
+    // format folder structure matching fileservice
+    const formattedItem = type === 'folder' 
+      ? { name, fullPath } 
+      : item;
+
+    this.fileService.toggleStar(formattedItem, type);
+    this.snackBar.open(
+      this.fileService.isStarred(fullPath, type) ? 'Added to Starred' : 'Removed from Starred', 
+      'Close', 
+      { duration: 3000 }
+    );
   }
 
   // ── CRUD actions ─────────────────────────────────────────────────────────
@@ -178,44 +258,97 @@ export class FileExplorerComponent implements OnInit, OnDestroy {
   onDelete(): void {
     const name = this.clicked_active_path;
     const type = this.contextMenuTargetType;
-    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
-      width: '420px',
-      data: {
-        title: `Delete ${type === 'folder' ? 'Folder' : 'File'}`,
-        message: `Are you sure you want to permanently delete "${name}"? This cannot be undone.`,
-        confirmLabel: 'Delete',
-        danger: true,
-      },
-    });
+    if (!name || !type) return;
 
-    dialogRef.afterClosed().subscribe((confirmed) => {
-      if (!confirmed) return;
+    if (this.currentView === 'trash') {
+      // Permanent delete
+      const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+        width: '420px',
+        data: {
+          title: `Delete Permanently`,
+          message: `Are you sure you want to permanently delete "${name}"? This cannot be undone.`,
+          confirmLabel: 'Delete',
+          danger: true,
+        },
+      });
+
+      dialogRef.afterClosed().subscribe((confirmed) => {
+        if (!confirmed) return;
+        const apiPath = '.trash/' + (this.breadcrumbFullPath ? this.breadcrumbFullPath + '/' + name : name);
+        if (type === 'file') {
+          this.fileService.deleteFile(apiPath).subscribe({
+            next: () => {
+              this.get_all_dir_files(this.breadcrumbFullPath);
+              this.fileService.refreshStorage();
+              this.snackBar.open('Permanently deleted file', 'Close', { duration: 3000 });
+            },
+            error: () => this.snackBar.open('Failed to delete file', 'Close', { duration: 4000 }),
+          });
+        } else {
+          this.fileService.deleteDirectory(apiPath).subscribe({
+            next: () => {
+              this.get_all_dir_files(this.breadcrumbFullPath);
+              this.fileService.refreshStorage();
+              this.snackBar.open('Permanently deleted folder', 'Close', { duration: 3000 });
+            },
+            error: () => this.snackBar.open('Failed to delete folder', 'Close', { duration: 4000 }),
+          });
+        }
+      });
+    } else {
+      // Move to trash
+      const oldPath = this.breadcrumbFullPath ? this.breadcrumbFullPath + '/' + name : name;
+      const newPath = '.trash/' + oldPath;
+
       if (type === 'file') {
-        this.fileService
-          .deleteFile(this.breadcrumbFullPath + '/' + name)
-          .subscribe({
-            next: () => {
-              this.get_all_dir_files(this.breadcrumbFullPath);
-              this.snackBar.open('File deleted', 'Close', { duration: 3000 });
-            },
-            error: (err) => {
-              this.snackBar.open('Failed to delete file', 'Close', { duration: 4000 });
-            },
-          });
+        this.fileService.renameFile(oldPath, newPath).subscribe({
+          next: () => {
+            this.fileService.onFileDeleted(oldPath);
+            this.get_all_dir_files(this.breadcrumbFullPath);
+            this.fileService.refreshStorage();
+            this.snackBar.open('File moved to Trash', 'Close', { duration: 3000 });
+          },
+          error: () => this.snackBar.open('Failed to move file to Trash', 'Close', { duration: 4000 }),
+        });
       } else {
-        this.fileService
-          .deleteDirectory(this.breadcrumbFullPath + '/' + name)
-          .subscribe({
-            next: () => {
-              this.get_all_dir_files(this.breadcrumbFullPath);
-              this.snackBar.open('Folder deleted', 'Close', { duration: 3000 });
-            },
-            error: (err) => {
-              this.snackBar.open('Failed to delete folder', 'Close', { duration: 4000 });
-            },
-          });
+        this.fileService.renameDirectory(oldPath, newPath).subscribe({
+          next: () => {
+            this.fileService.onFileDeleted(oldPath);
+            this.get_all_dir_files(this.breadcrumbFullPath);
+            this.fileService.refreshStorage();
+            this.snackBar.open('Folder moved to Trash', 'Close', { duration: 3000 });
+          },
+          error: () => this.snackBar.open('Failed to move folder to Trash', 'Close', { duration: 4000 }),
+        });
       }
-    });
+    }
+  }
+
+  onRestore(item: any, type: 'file' | 'folder'): void {
+    const name = type === 'file' ? item.name : (typeof item === 'string' ? item : item.name);
+    const trashPath = this.breadcrumbFullPath ? this.breadcrumbFullPath + '/' + name : name;
+    const fullTrashPath = '.trash/' + trashPath;
+    const restorePath = trashPath;
+
+    if (type === 'file') {
+      this.fileService.renameFile(fullTrashPath, restorePath).subscribe({
+        next: () => {
+          this.get_all_dir_files(this.breadcrumbFullPath);
+          this.fileService.refreshStorage();
+          this.snackBar.open('File restored successfully', 'Close', { duration: 3000 });
+        },
+        error: () => this.snackBar.open('Failed to restore file', 'Close', { duration: 4000 })
+      });
+    } else {
+      this.fileService.renameDirectory(fullTrashPath, restorePath).subscribe({
+        next: () => {
+          this.get_all_dir_files(this.breadcrumbFullPath);
+          this.fileService.refreshStorage();
+          this.snackBar.open('Folder restored successfully', 'Close', { duration: 3000 });
+        },
+        error: () => this.snackBar.open('Failed to restore folder', 'Close', { duration: 4000 })
+      });
+    }
   }
 
   onRename(): void {
@@ -258,6 +391,8 @@ export class FileExplorerComponent implements OnInit, OnDestroy {
     if (this.clipboard.type === 'folder') {
       this.fileService.renameDirectory(this.clipboard.path, destination).subscribe({
         next: () => {
+          const oldPath = this.clipboard!.path;
+          this.fileService.onFileRenamed(oldPath, destination);
           this.clipboard = null;
           this.get_all_dir_files(this.breadcrumbFullPath);
           this.snackBar.open('Folder moved successfully', 'Close', { duration: 3000 });
@@ -267,6 +402,8 @@ export class FileExplorerComponent implements OnInit, OnDestroy {
     } else {
       this.fileService.renameFile(this.clipboard.path, destination).subscribe({
         next: () => {
+          const oldPath = this.clipboard!.path;
+          this.fileService.onFileRenamed(oldPath, destination);
           this.clipboard = null;
           this.get_all_dir_files(this.breadcrumbFullPath);
           this.snackBar.open('File moved successfully', 'Close', { duration: 3000 });
@@ -277,15 +414,16 @@ export class FileExplorerComponent implements OnInit, OnDestroy {
   }
 
   onDownload(): void {
-    const filePath = this.breadcrumbFullPath
-      ? this.breadcrumbFullPath + '/' + this.clicked_active_path
-      : this.clicked_active_path;
+    const name = this.clicked_active_path;
+    const filePath = this.currentView === 'trash'
+      ? '.trash/' + (this.breadcrumbFullPath ? this.breadcrumbFullPath + '/' + name : name)
+      : (this.breadcrumbFullPath ? this.breadcrumbFullPath + '/' + name : name);
 
     this.fileService.getSignedUrl(filePath).subscribe({
       next: (res: any) => {
         const a = document.createElement('a');
         a.href = res.result;
-        a.download = this.clicked_active_path;
+        a.download = name;
         a.target = '_blank';
         a.click();
       },
@@ -296,9 +434,11 @@ export class FileExplorerComponent implements OnInit, OnDestroy {
   // ── Rename helpers ───────────────────────────────────────────────────────
 
   onRenameDirectory(newName: string): void {
-    const oldName = this.breadcrumbFullPath + '/' + this.clicked_active_path;
+    const oldName = this.breadcrumbFullPath ? this.breadcrumbFullPath + '/' + this.clicked_active_path : this.clicked_active_path;
+    const newPath = this.breadcrumbFullPath ? this.breadcrumbFullPath + '/' + newName : newName;
     this.fileService.renameDirectory(oldName, newName).subscribe({
       next: () => {
+        this.fileService.onFileRenamed(oldName, newPath);
         this.get_all_dir_files(this.breadcrumbFullPath);
         this.snackBar.open('Folder renamed', 'Close', { duration: 3000 });
       },
@@ -309,9 +449,11 @@ export class FileExplorerComponent implements OnInit, OnDestroy {
   }
 
   onRenameFile(newName: string): void {
-    const oldName = this.breadcrumbFullPath + '/' + this.clicked_active_path;
+    const oldName = this.breadcrumbFullPath ? this.breadcrumbFullPath + '/' + this.clicked_active_path : this.clicked_active_path;
+    const newPath = this.breadcrumbFullPath ? this.breadcrumbFullPath + '/' + newName : newName;
     this.fileService.renameFile(oldName, newName).subscribe({
       next: () => {
+        this.fileService.onFileRenamed(oldName, newPath);
         this.get_all_dir_files(this.breadcrumbFullPath);
         this.snackBar.open('File renamed', 'Close', { duration: 3000 });
       },
@@ -323,8 +465,9 @@ export class FileExplorerComponent implements OnInit, OnDestroy {
 
   // ── Navigation ───────────────────────────────────────────────────────────
 
-  OnClickDir(folderName: string): void {
-    this.breadcrumb_paths.push(folderName);
+  OnClickDir(folderName: any): void {
+    const name = typeof folderName === 'string' ? folderName : folderName.name;
+    this.breadcrumb_paths.push(name);
     this.get_all_dir_files(this.breadcrumbFullPath);
   }
 
@@ -340,9 +483,10 @@ export class FileExplorerComponent implements OnInit, OnDestroy {
   // ── File click / preview ─────────────────────────────────────────────────
 
   onFileClick(file: any): void {
-    const file_url = this.breadcrumb_paths.length === 0
-      ? file.name
-      : this.breadcrumbFullPath + '/' + file.name;
+    const name = file.name;
+    const file_url = this.currentView === 'trash'
+      ? '.trash/' + (this.breadcrumbFullPath ? this.breadcrumbFullPath + '/' + name : name)
+      : (this.breadcrumbFullPath ? this.breadcrumbFullPath + '/' + name : name);
 
     this.fileService.getSignedUrl(file_url).subscribe((url: any) => {
       this.dialog.open(FilePreviewComponent, {
@@ -354,6 +498,12 @@ export class FileExplorerComponent implements OnInit, OnDestroy {
         panelClass: 'file-preview-dialog',
         autoFocus: false,
       });
+
+      if (this.currentView !== 'trash') {
+        const fullPath = this.breadcrumbFullPath ? this.breadcrumbFullPath + '/' + name : name;
+        const recentFileObj = { ...file, fullPath };
+        this.fileService.addToRecent(recentFileObj);
+      }
     });
   }
 
@@ -402,6 +552,7 @@ export class FileExplorerComponent implements OnInit, OnDestroy {
         const successCount = results.filter((r) => r !== null).length;
         if (successCount > 0) {
           this.get_all_dir_files(this.breadcrumbFullPath);
+          this.fileService.refreshStorage();
           this.snackBar.open(`Uploaded ${successCount} of ${files.length} files`, 'Close', { duration: 5000 });
         } else {
           this.snackBar.open('No files were uploaded', 'Close', { duration: 5000 });
@@ -418,13 +569,55 @@ export class FileExplorerComponent implements OnInit, OnDestroy {
   // ── Directory loading ────────────────────────────────────────────────────
 
   get_all_dir_files(path: string): void {
-    this.fileService.get_all_files(path).subscribe((data: any) => {
-      this.current_directories = data.result.directories ?? [];
-      this.current_files = data.result.files ?? [];
-      if (!path) {
-        this.fileService.setRootFolders(this.current_directories);
-      }
+    if (this.currentView === 'recent') {
+      this.current_directories = [];
+      this.current_files = this.fileService.config.recent;
+      this.filterItems(this.searchQuery);
       this.saveNavigationState();
+      return;
+    }
+
+    if (this.currentView === 'starred') {
+      this.current_directories = this.fileService.config.starred
+        .filter((s: any) => s.type === 'folder')
+        .map((s: any) => s.name);
+      this.current_files = this.fileService.config.starred
+        .filter((s: any) => s.type === 'file');
+      this.filterItems(this.searchQuery);
+      this.saveNavigationState();
+      return;
+    }
+
+    let apiPath = path;
+    if (this.currentView === 'trash') {
+      apiPath = path ? '.trash/' + path : '.trash';
+    }
+
+    this.fileService.get_all_files(apiPath).subscribe({
+      next: (data: any) => {
+        let dirs = data.result?.directories ?? [];
+        let files = data.result?.files ?? [];
+
+        if (this.currentView === 'home' && !path) {
+          dirs = dirs.filter((d: string) => d !== '.trash');
+          files = files.filter((f: any) => f.name !== '.filenest_config.json');
+        }
+
+        this.current_directories = dirs;
+        this.current_files = files;
+
+        if (this.currentView === 'home' && !path) {
+          this.fileService.setRootFolders(this.current_directories);
+        }
+        this.filterItems(this.searchQuery);
+        this.saveNavigationState();
+      },
+      error: (err) => {
+        console.error('Error loading files:', err);
+        this.current_directories = [];
+        this.current_files = [];
+        this.filterItems(this.searchQuery);
+      }
     });
   }
 
@@ -434,6 +627,7 @@ export class FileExplorerComponent implements OnInit, OnDestroy {
         this.fileService.addRootFolder(name);
       }
       this.get_all_dir_files(this.breadcrumbFullPath);
+      this.fileService.refreshStorage();
     });
   }
 
@@ -441,7 +635,7 @@ export class FileExplorerComponent implements OnInit, OnDestroy {
 
   private restoreNavigationState(): void {
     const savedPath = localStorage.getItem('fileExplorerCurrentPath');
-    if (savedPath) {
+    if (savedPath && this.currentView === 'home') {
       this.breadcrumb_paths = savedPath.split('/').filter((s) => s !== '');
       this.fileService.setCurrentFolder(this.breadcrumbFullPath);
       this.get_all_dir_files(this.breadcrumbFullPath);
@@ -449,7 +643,9 @@ export class FileExplorerComponent implements OnInit, OnDestroy {
   }
 
   private saveNavigationState(): void {
-    localStorage.setItem('fileExplorerCurrentPath', this.breadcrumbFullPath);
+    if (this.currentView === 'home') {
+      localStorage.setItem('fileExplorerCurrentPath', this.breadcrumbFullPath);
+    }
   }
 
   // ── File icon helpers ────────────────────────────────────────────────────
@@ -501,5 +697,8 @@ export class FileExplorerComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.rootFoldersSubscription?.unsubscribe();
     this.currentFolderSubscription?.unsubscribe();
+    this.viewSubscription?.unsubscribe();
+    this.searchSubscription?.unsubscribe();
+    this.configSubscription?.unsubscribe();
   }
 }

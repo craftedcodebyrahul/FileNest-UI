@@ -1,9 +1,8 @@
-import { get } from "node:http";
-
 export const url_constants = {
   auth: {
     login: 'auth/login',
     register: 'auth/signup',
+    google: 'auth/google',
     logout: 'auth/logout',
     get_profile: 'auth/get_profile',
     update_profile: 'auth/update_profile',
@@ -20,5 +19,7 @@ export const url_constants = {
     get_signed_url: 'file/get_signed_url',
     rename_dir: 'file/rename_dir',
     rename_file: 'file/rename_file',
+    storage_info: 'file/storage_info',
   },
 };
+

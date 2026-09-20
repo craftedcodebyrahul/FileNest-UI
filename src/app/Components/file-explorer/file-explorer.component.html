@@ -1,154 +1,5 @@
-<style>
-.explorer-shell {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  background: #f0f2f5;
-  overflow: hidden;
-}
-
-.explorer-topbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 12px;
-  padding: 1rem 1.25rem 0.75rem;
-  background: #ffffff;
-  border-bottom: 1px solid #e2e8f0;
-  flex-shrink: 0;
-}
-
-.breadcrumb {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  flex-wrap: wrap;
-  min-width: 0;
-}
-
-.crumb {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font: 500 14px sans-serif;
-  color: #4f46e5; cursor: pointer;
-  padding: 4px 6px; border-radius: 6px;
-  text-decoration: none; transition: background 0.15s;
-  white-space: nowrap;
-}
-
-.crumb:hover { background: #ede9fe; }
-
-.crumb mat-icon, .card-menu-btn mat-icon { font-size: 16px; width: 16px; height: 16px; }
-
-.crumb-sep, .action-btn mat-icon, .clipboard-banner mat-icon { font-size: 18px; width: 18px; height: 18px; }
-.crumb-sep { color: #cbd5e1; }
-
-.topbar-actions {
-  display: flex;
-  gap: 8px;
-  flex-shrink: 0;
-}
-
-.action-btn {
-  height: 36px;
-  border-radius: 8px !important;
-  font: 500 13px sans-serif;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.upload-btn {
-  background: linear-gradient(135deg, #4f46e5, #06b6d4) !important;
-  color: #fff !important;
-}
-
-.upload-progress-bar {
-  padding: 8px 20px 4px;
-  background: #fff;
-  border-bottom: 1px solid #e2e8f0;
-  flex-shrink: 0;
-}
-
-.upload-progress-label {
-  font-size: 12px;
-  color: #64748b;
-  display: block;
-  margin-top: 4px;
-}
-
-.explorer-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 20px;
-}
-
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 300px;
-  text-align: center;
-  color: #94a3b8;
-}
-
-.empty-icon {
-  font-size: 72px;
-  width: 72px;
-  height: 72px;
-  color: #cbd5e1;
-  margin-bottom: 16px;
-}
-
-.empty-title {
-  font: 600 18px sans-serif;
-  color: #475569;
-  margin-bottom: 6px;
-}
-
-.file-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 12px;
-}
-
-.file-card {
-  position: relative;
-  display: flex; flex-direction: column; align-items: center;
-  padding: 20px 16px 14px; background: #fff; border: 1px solid #e2e8f0;
-  border-radius: 12px; cursor: pointer; text-align: center; overflow: hidden;
-  transition: box-shadow .2s, border-color .2s, transform .15s;
-}
-
-.file-card:hover {
-  box-shadow: 0 4px 16px rgba(0,0,0,.1); border-color: #c7d2fe; transform: translateY(-2px);
-}
-.file-card:focus-visible {
-  outline: 2px solid #4f46e5;
-  outline-offset: 2px;
-}
-
-.card-icon-wrap {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 52px;
-  height: 52px;
-  border-radius: 12px;
-  margin-bottom: 12px; flex-shrink: 0;
-}
-
-.card-icon {
-  font-size: 28px;
-  width: 28px;
-  height: 28px;
-}
-</style>
-
 <div class="explorer-shell">
+
 
   <!-- ── Top bar ── -->
   <div class="explorer-topbar">
@@ -156,21 +7,32 @@
     <!-- Breadcrumb -->
     <nav class="breadcrumb" aria-label="File path">
       <a class="crumb crumb-home"
+         *ngIf="currentView === 'home' || currentView === 'trash'"
          (click)="breadcrumb_paths = []; get_all_dir_files('')"
          role="button" tabindex="0"
          (keydown.enter)="breadcrumb_paths = []; get_all_dir_files('')">
-        <mat-icon>home</mat-icon>
-        <span>Home</span>
+        <mat-icon>{{ currentView === 'trash' ? 'delete_outline' : 'home' }}</mat-icon>
+        <span>{{ currentView === 'trash' ? 'Trash' : 'Home' }}</span>
       </a>
-      <ng-container *ngFor="let crumb of breadcrumb_paths; let i = index">
-        <mat-icon class="crumb-sep">chevron_right</mat-icon>
-        <a class="crumb" (click)="onBreadcrumbClick(i)" role="button" tabindex="0"
-           (keydown.enter)="onBreadcrumbClick(i)">{{ crumb }}</a>
+      <a class="crumb crumb-home" *ngIf="currentView === 'recent'">
+        <mat-icon>schedule</mat-icon>
+        <span>Recent</span>
+      </a>
+      <a class="crumb crumb-home" *ngIf="currentView === 'starred'">
+        <mat-icon>star_border</mat-icon>
+        <span>Starred</span>
+      </a>
+      <ng-container *ngIf="currentView === 'home' || currentView === 'trash'">
+        <ng-container *ngFor="let crumb of breadcrumb_paths; let i = index">
+          <mat-icon class="crumb-sep">chevron_right</mat-icon>
+          <a class="crumb" (click)="onBreadcrumbClick(i)" role="button" tabindex="0"
+             (keydown.enter)="onBreadcrumbClick(i)">{{ crumb }}</a>
+        </ng-container>
       </ng-container>
     </nav>
 
     <!-- Actions -->
-    <div class="topbar-actions">
+    <div class="topbar-actions" *ngIf="currentView === 'home'">
       <!-- Paste button (visible when clipboard has content) -->
       <button mat-stroked-button class="action-btn paste-btn"
               *ngIf="clipboard"
@@ -210,18 +72,24 @@
   <div class="explorer-content">
 
     <!-- Empty state -->
-    <div class="empty-state" *ngIf="current_directories.length === 0 && current_files.length === 0">
-      <mat-icon class="empty-icon">folder_open</mat-icon>
-      <p class="empty-title">This folder is empty</p>
-      <p class="empty-sub">Upload files or create a new folder to get started</p>
+    <div class="empty-state" *ngIf="displayed_directories.length === 0 && displayed_files.length === 0">
+      <mat-icon class="empty-icon">
+        {{ currentView === 'trash' ? 'delete_outline' : (currentView === 'starred' ? 'star_border' : (currentView === 'recent' ? 'schedule' : 'folder_open')) }}
+      </mat-icon>
+      <p class="empty-title">
+        {{ currentView === 'trash' ? 'Trash is empty' : (currentView === 'starred' ? 'No starred items' : (currentView === 'recent' ? 'No recent items' : 'This folder is empty')) }}
+      </p>
+      <p class="empty-sub">
+        {{ currentView === 'trash' ? 'Items deleted will appear here' : (currentView === 'starred' ? 'Star files or folders to find them easily' : (currentView === 'recent' ? 'Files you view or upload will show up here' : 'Upload files or create a new folder to get started')) }}
+      </p>
     </div>
 
     <!-- Grid -->
-    <div class="file-grid" *ngIf="current_directories.length > 0 || current_files.length > 0">
+    <div class="file-grid" *ngIf="displayed_directories.length > 0 || displayed_files.length > 0">
 
       <!-- Folders -->
       <div class="file-card folder-card"
-           *ngFor="let folder of current_directories"
+           *ngFor="let folder of displayed_directories"
            (click)="onCardClick($event, folder, 'folder')"
            (dblclick)="OnClickDir(folder)"
            (contextmenu)="onContextMenu($event, folder, 'folder')"
@@ -248,7 +116,7 @@
 
       <!-- Files -->
       <div class="file-card"
-           *ngFor="let file of current_files"
+           *ngFor="let file of displayed_files"
            (click)="onCardClick($event, file, 'file')"
            (dblclick)="onFileClick(file)"
            (contextmenu)="onContextMenu($event, file, 'file')"
@@ -290,26 +158,46 @@
 <!-- Desktop context menu -->
 <mat-menu #contextMenu="matMenu" class="context-menu-panel">
   <ng-template matMenuContent let-item="item" let-type="type">
-    <button mat-menu-item (click)="onRename()">
-      <mat-icon>drive_file_rename_outline</mat-icon>
-      <span>Rename</span>
-    </button>
-    <button mat-menu-item (click)="onCut()">
-      <mat-icon>content_cut</mat-icon>
-      <span>Cut (Move)</span>
-    </button>
-    <button mat-menu-item *ngIf="clipboard" (click)="onPaste()">
-      <mat-icon>content_paste</mat-icon>
-      <span>Paste here</span>
-    </button>
-    <button mat-menu-item *ngIf="contextMenuTargetType === 'file'" (click)="onDownload()">
-      <mat-icon>download</mat-icon>
-      <span>Download</span>
-    </button>
-    <mat-divider></mat-divider>
-    <button mat-menu-item class="delete-item" (click)="onDelete()">
-      <mat-icon>delete_outline</mat-icon>
-      <span>Delete</span>
-    </button>
+    <!-- Normal View Actions -->
+    <ng-container *ngIf="currentView !== 'trash'">
+      <button mat-menu-item (click)="toggleStar(item, type)">
+        <mat-icon>{{ isStarred(item, type) ? 'star' : 'star_border' }}</mat-icon>
+        <span>{{ isStarred(item, type) ? 'Unstar' : 'Star' }}</span>
+      </button>
+      <button mat-menu-item (click)="onRename()">
+        <mat-icon>drive_file_rename_outline</mat-icon>
+        <span>Rename</span>
+      </button>
+      <button mat-menu-item (click)="onCut()">
+        <mat-icon>content_cut</mat-icon>
+        <span>Cut (Move)</span>
+      </button>
+      <button mat-menu-item *ngIf="clipboard" (click)="onPaste()">
+        <mat-icon>content_paste</mat-icon>
+        <span>Paste here</span>
+      </button>
+      <button mat-menu-item *ngIf="type === 'file'" (click)="onDownload()">
+        <mat-icon>download</mat-icon>
+        <span>Download</span>
+      </button>
+      <mat-divider></mat-divider>
+      <button mat-menu-item class="delete-item" (click)="onDelete()">
+        <mat-icon>delete_outline</mat-icon>
+        <span>Delete</span>
+      </button>
+    </ng-container>
+
+    <!-- Trash View Actions -->
+    <ng-container *ngIf="currentView === 'trash'">
+      <button mat-menu-item (click)="onRestore(item, type)">
+        <mat-icon>restore</mat-icon>
+        <span>Restore</span>
+      </button>
+      <mat-divider></mat-divider>
+      <button mat-menu-item class="delete-item" (click)="onDelete()">
+        <mat-icon>delete_forever</mat-icon>
+        <span>Delete Permanently</span>
+      </button>
+    </ng-container>
   </ng-template>
 </mat-menu>
