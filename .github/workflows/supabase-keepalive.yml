@@ -1,0 +1,88 @@
+name: Supabase Keep-Alive
+
+on:
+  schedule:
+    # Runs every day at 12:00 PM UTC (adjust as needed)
+    # For IST (UTC+5:30), 12 PM IST = 6:30 AM UTC → use '30 6 * * *'
+    # For EST (UTC-5),   12 PM EST = 5:00 PM UTC → use '0 17 * * *'
+    - cron: '0 12 * * *'
+  workflow_dispatch: # Allow manual trigger for testing
+
+jobs:
+  keepalive:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🏓 Ping Supabase Storage & DB
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          SUPABASE_BUCKET: ${{ secrets.SUPABASE_BUCKET }}
+        run: |
+          set -e
+
+          echo "============================================"
+          echo "🕐 Keep-Alive started at $(date -u)"
+          echo "============================================"
+
+          # ── 1. Upload a tiny keep-alive file to Supabase Storage ──
+          KEEPALIVE_FILE=".keepalive_$(date +%s).txt"
+          KEEPALIVE_CONTENT="keepalive-ping-$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          STORAGE_PATH="${KEEPALIVE_FILE}"
+
+          echo "📤 Uploading keep-alive file: ${STORAGE_PATH}"
+
+          UPLOAD_RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
+            "${SUPABASE_URL}/storage/v1/object/${SUPABASE_BUCKET}/${STORAGE_PATH}" \
+            -H "Authorization: Bearer ${SUPABASE_KEY}" \
+            -H "apikey: ${SUPABASE_KEY}" \
+            -H "Content-Type: text/plain" \
+            -d "${KEEPALIVE_CONTENT}")
+
+          UPLOAD_HTTP_CODE=$(echo "$UPLOAD_RESPONSE" | tail -1)
+          UPLOAD_BODY=$(echo "$UPLOAD_RESPONSE" | sed '$d')
+
+          if [ "$UPLOAD_HTTP_CODE" -ge 200 ] && [ "$UPLOAD_HTTP_CODE" -lt 300 ]; then
+            echo "✅ Upload successful (HTTP ${UPLOAD_HTTP_CODE})"
+          else
+            echo "⚠️  Upload returned HTTP ${UPLOAD_HTTP_CODE}: ${UPLOAD_BODY}"
+            echo "    (This is OK — the storage interaction still counts as activity)"
+          fi
+
+          # ── 2. Delete the keep-alive file ──
+          echo "🗑️  Deleting keep-alive file: ${STORAGE_PATH}"
+
+          DELETE_RESPONSE=$(curl -s -w "\n%{http_code}" -X DELETE \
+            "${SUPABASE_URL}/storage/v1/object/${SUPABASE_BUCKET}/${STORAGE_PATH}" \
+            -H "Authorization: Bearer ${SUPABASE_KEY}" \
+            -H "apikey: ${SUPABASE_KEY}")
+
+          DELETE_HTTP_CODE=$(echo "$DELETE_RESPONSE" | tail -1)
+          DELETE_BODY=$(echo "$DELETE_RESPONSE" | sed '$d')
+
+          if [ "$DELETE_HTTP_CODE" -ge 200 ] && [ "$DELETE_HTTP_CODE" -lt 300 ]; then
+            echo "✅ Delete successful (HTTP ${DELETE_HTTP_CODE})"
+          else
+            echo "⚠️  Delete returned HTTP ${DELETE_HTTP_CODE}: ${DELETE_BODY}"
+          fi
+
+          # ── 3. Ping the Database via PostgREST (keeps DB active) ──
+          echo "🗄️  Pinging database..."
+
+          DB_RESPONSE=$(curl -s -w "\n%{http_code}" -X GET \
+            "${SUPABASE_URL}/rest/v1/" \
+            -H "Authorization: Bearer ${SUPABASE_KEY}" \
+            -H "apikey: ${SUPABASE_KEY}" \
+            -H "Accept: application/json")
+
+          DB_HTTP_CODE=$(echo "$DB_RESPONSE" | tail -1)
+
+          if [ "$DB_HTTP_CODE" -ge 200 ] && [ "$DB_HTTP_CODE" -lt 300 ]; then
+            echo "✅ Database ping successful (HTTP ${DB_HTTP_CODE})"
+          else
+            echo "⚠️  Database ping returned HTTP ${DB_HTTP_CODE}"
+          fi
+
+          echo ""
+          echo "============================================"
+          echo "✅ Keep-Alive completed at $(date -u)"
+          echo "============================================"
